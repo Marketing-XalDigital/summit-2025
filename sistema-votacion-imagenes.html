@@ -12,16 +12,15 @@
         import { getDatabase, ref, set, get, push, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
         import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
-        // Configuración de Firebase (tendrás que reemplazar con tu config)
+        // Configuración de Firebase
         const firebaseConfig = {
-            // IMPORTANTE: Reemplaza esta configuración con la tuya
             apiKey: "AIzaSyCngMkzuGbaWci8cQ4JLFsacBYGn8MUwb0",
-              authDomain: "votacion-imagenes-cfcd6.firebaseapp.com",
-              databaseURL: "https://votacion-imagenes-cfcd6-default-rtdb.firebaseio.com",
-              projectId: "votacion-imagenes-cfcd6",
-              storageBucket: "votacion-imagenes-cfcd6.firebasestorage.app",
-              messagingSenderId: "907624811038",
-              appId: "1:907624811038:web:9af58c7b5981534fb07c0f"
+            authDomain: "votacion-imagenes-cfcd6.firebaseapp.com",
+            databaseURL: "https://votacion-imagenes-cfcd6-default-rtdb.firebaseio.com",
+            projectId: "votacion-imagenes-cfcd6",
+            storageBucket: "votacion-imagenes-cfcd6.firebasestorage.app",
+            messagingSenderId: "907624811038",
+            appId: "1:907624811038:web:9af58c7b5981534fb07c0f"
         };
 
         // Inicializar Firebase
@@ -43,72 +42,92 @@
             background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
             min-height: 100vh;
             color: #000;
+            /* Optimizaciones móviles */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
         }
 
         .header {
             text-align: center;
             color: #000;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            font-size: 2.5em;
+            font-size: clamp(1.8em, 5vw, 2.5em);
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
             font-weight: 700;
         }
 
+        .header p {
+            font-size: clamp(14px, 3vw, 16px);
+        }
+
         .firebase-setup {
             background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             border: 3px solid #dc770e;
+            font-size: 14px;
         }
 
         .firebase-setup h3 {
             color: #dc770e;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-weight: 600;
+            font-size: 18px;
         }
 
-        .firebase-setup code {
+        .firebase-setup ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .firebase-setup pre {
             background: #f5f5f5;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        /* Estilos para el login */
+        /* Estilos para el login optimizados para móvil */
         .login-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            min-height: 70vh;
+            padding: 10px;
         }
 
         .login-box {
             background: rgba(255,255,255,0.95);
             border-radius: 20px;
-            padding: 40px;
+            padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
-            max-width: 400px;
+            max-width: 380px;
             width: 100%;
             text-align: center;
         }
 
         .login-box h2 {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-weight: 600;
             color: #000;
+            font-size: clamp(20px, 4vw, 24px);
         }
 
         .login-option {
@@ -119,18 +138,20 @@
             background: #dc770e;
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 18px 25px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: clamp(16px, 4vw, 18px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
             width: 100%;
             margin-bottom: 15px;
+            min-height: 50px;
+            touch-action: manipulation;
         }
 
-        .voter-btn:hover {
+        .voter-btn:hover, .voter-btn:active {
             background: #b8630c;
             transform: translateY(-2px);
         }
@@ -142,37 +163,42 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             text-align: left;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 600;
             color: #333;
+            font-size: 16px;
         }
 
         .form-input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: 2px solid #ddd;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
             font-family: 'Dosis', sans-serif;
             transition: border-color 0.3s ease;
+            min-height: 50px;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .form-input:focus {
             outline: none;
             border-color: #dc770e;
+            box-shadow: 0 0 0 3px rgba(220, 119, 14, 0.1);
         }
 
         .admin-btn {
             background: #fbd21d;
             color: #000;
             border: none;
-            padding: 12px 30px;
+            padding: 15px 25px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 16px;
@@ -180,64 +206,75 @@
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
             width: 100%;
+            min-height: 50px;
+            touch-action: manipulation;
         }
 
-        .admin-btn:hover {
+        .admin-btn:hover, .admin-btn:active {
             background: #e6bd0a;
             transform: translateY(-2px);
         }
 
         .user-info {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 10px 20px;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 15px;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 1000;
+            font-size: 14px;
+            max-width: calc(100vw - 20px);
         }
 
         .logout-btn {
             background: #ff4444;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 15px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
-            margin-left: 10px;
+            margin-left: 8px;
             transition: all 0.3s ease;
+            touch-action: manipulation;
         }
 
-        .logout-btn:hover {
+        .logout-btn:hover, .logout-btn:active {
             background: #cc3333;
         }
 
         .nav-buttons {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 0 10px;
         }
 
         .nav-btn {
-            padding: 12px 24px;
+            padding: 12px 16px;
             background: rgba(255,255,255,0.9);
             border: 2px solid #dc770e;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             color: #dc770e;
+            flex: 1;
+            min-width: 140px;
+            max-width: 200px;
+            touch-action: manipulation;
         }
 
-        .nav-btn:hover:not(:disabled) {
+        .nav-btn:hover:not(:disabled), .nav-btn:active:not(:disabled) {
             background: #dc770e;
             color: white;
             transform: translateY(-2px);
@@ -261,7 +298,7 @@
             display: none;
             background: rgba(255,255,255,0.95);
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
         }
@@ -338,24 +375,29 @@
         .voting-pair {
             background: white;
             border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
 
         .voting-pair h3 {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #000;
-            font-size: 1.5em;
+            font-size: clamp(20px, 5vw, 24px);
             font-weight: 600;
+        }
+
+        .voting-pair p {
+            font-size: clamp(14px, 3vw, 16px);
+            margin-bottom: 20px;
         }
 
         .images-comparison {
             display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 25px;
         }
 
         .vote-option {
@@ -366,66 +408,86 @@
             transition: all 0.3s ease;
             cursor: pointer;
             border: 3px solid transparent;
+            width: 100%;
+            max-width: 350px;
         }
 
-        .vote-option:hover {
-            transform: translateY(-5px);
+        .vote-option:hover, .vote-option:active {
+            transform: translateY(-3px);
             border-color: #dc770e;
-            box-shadow: 0 10px 25px rgba(220, 119, 14, 0.3);
+            box-shadow: 0 8px 25px rgba(220, 119, 14, 0.25);
         }
 
         .vote-option img {
-            width: 300px;
-            height: 300px;
+            width: 100%;
+            max-width: 280px;
+            height: 280px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .vote-option h4 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #dc770e;
+            font-size: clamp(18px, 4vw, 20px);
         }
 
         .vote-btn {
             background: #dc770e;
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 15px 20px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(16px, 3.5vw, 18px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
             width: 100%;
+            min-height: 50px;
+            touch-action: manipulation;
         }
 
-        .vote-btn:hover {
+        .vote-btn:hover, .vote-btn:active {
             background: #b8630c;
+            transform: scale(1.02);
         }
 
         .vote-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
         }
 
         .navigation-controls {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            align-items: center;
+            gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
 
         .nav-control {
             background: #fbd21d;
             color: #000;
             border: none;
-            padding: 12px 25px;
+            padding: 12px 20px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: clamp(14px, 3vw, 16px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
+            min-height: 45px;
+            min-width: 100px;
+            touch-action: manipulation;
         }
 
-        .nav-control:hover {
+        .nav-control:hover, .nav-control:active {
             background: #e6bd0a;
             transform: translateY(-2px);
         }
@@ -433,12 +495,21 @@
         .nav-control:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
+        }
+
+        #pairCounter {
+            font-weight: 600;
+            font-size: clamp(16px, 4vw, 18px);
+            color: #000;
+            text-align: center;
+            min-width: 120px;
         }
 
         .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
+            grid-template-columns: 1fr;
+            gap: 20px;
         }
 
         .result-card {
@@ -453,17 +524,35 @@
             transform: translateY(-5px);
         }
 
+        .result-card h3 {
+            font-size: clamp(18px, 4vw, 20px);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
         .result-images {
             display: flex;
+            flex-direction: column;
             gap: 15px;
             margin-bottom: 15px;
         }
 
+        .result-img-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
         .result-img {
-            width: 150px;
-            height: 150px;
+            width: 100%;
+            max-width: 200px;
+            height: 200px;
             object-fit: cover;
             border-radius: 10px;
+            margin-bottom: 10px;
         }
 
         .result-stats {
@@ -475,10 +564,11 @@
         .status-message {
             text-align: center;
             padding: 20px;
-            margin: 20px 0;
+            margin: 15px 0;
             border-radius: 10px;
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
+            font-size: clamp(14px, 3vw, 16px);
         }
 
         .success {
@@ -503,12 +593,13 @@
             background: #e0e0e0;
             border-radius: 10px;
             overflow: hidden;
-            margin: 20px 0;
+            margin: 15px 0;
+            height: 25px;
         }
 
         .progress-fill {
             background: linear-gradient(90deg, #dc770e, #fbd21d);
-            height: 20px;
+            height: 100%;
             border-radius: 10px;
             transition: width 0.3s ease;
             display: flex;
@@ -517,29 +608,166 @@
             color: #000;
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
+            font-size: clamp(12px, 3vw, 14px);
         }
 
         .loading {
             text-align: center;
             padding: 20px;
             color: #666;
+            font-size: clamp(16px, 4vw, 18px);
         }
 
+        /* Optimizaciones específicas para móviles */
         @media (max-width: 768px) {
-            .images-comparison {
-                flex-direction: column;
-                align-items: center;
+            .container {
+                padding: 5px;
             }
             
-            .vote-option img {
-                width: 250px;
-                height: 250px;
-            }
-
             .user-info {
                 position: static;
-                margin: 10px 0;
+                margin: 10px auto;
                 text-align: center;
+                max-width: calc(100vw - 10px);
+                border-radius: 15px;
+            }
+
+            .nav-buttons {
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+
+            .nav-btn {
+                padding: 10px 12px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+
+            .section {
+                padding: 15px;
+                margin: 0 5px;
+            }
+
+            .voting-pair {
+                padding: 15px;
+            }
+
+            .vote-option {
+                padding: 15px;
+                max-width: 100%;
+            }
+
+            .vote-option img {
+                height: 250px;
+                max-width: 100%;
+            }
+
+            .navigation-controls {
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .nav-control {
+                padding: 10px 15px;
+                min-width: 80px;
+            }
+
+            #pairCounter {
+                width: 100%;
+                order: -1;
+                margin-bottom: 10px;
+            }
+
+            .firebase-setup {
+                margin: 5px;
+                padding: 15px;
+                font-size: 13px;
+            }
+
+            .firebase-setup pre {
+                font-size: 9px;
+                padding: 8px;
+            }
+
+            .login-box {
+                margin: 0 10px;
+                padding: 20px;
+            }
+
+            .results-grid {
+                gap: 15px;
+                padding: 0 10px;
+            }
+
+            .result-card {
+                padding: 15px;
+            }
+
+            .result-images {
+                gap: 10px;
+            }
+
+            .result-img {
+                height: 150px;
+                max-width: 150px;
+            }
+        }
+
+        /* Optimizaciones para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .vote-option img {
+                height: 200px;
+            }
+
+            .result-img {
+                height: 120px;
+                max-width: 120px;
+            }
+
+            .nav-btn {
+                font-size: 12px;
+                padding: 8px 10px;
+            }
+        }
+
+        /* Optimizaciones para tablets */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .images-comparison {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .vote-option {
+                max-width: 300px;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+
+            .result-images {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        /* Optimizaciones para pantallas grandes */
+        @media (min-width: 1025px) {
+            .images-comparison {
+                flex-direction: row;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            }
+
+            .result-images {
+                flex-direction: row;
             }
         }
     </style>
@@ -1391,32 +1619,32 @@ const firebaseConfig = {
                 resultCard.innerHTML = `
                     <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${pair.name}</h3>
                     <div class="result-images">
-                        <div style="text-align: center; ${winner === 1 ? 'border: 2px solid #dc770e; border-radius: 10px; padding: 5px;' : ''}">
+                        <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0;' : ''}">
                             <img src="${pair.image1.url}" class="result-img">
-                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person1}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: 18px; margin-top: 5px;">${pairVotes.image1 || 0} votos</p>
-                            ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
+                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: clamp(16px, 4vw, 18px);">${names.person1}</p>
+                            <p style="color: #dc770e; font-weight: 600; font-size: clamp(18px, 5vw, 20px); margin-top: 5px;">${pairVotes.image1 || 0} votos</p>
+                            ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px; font-size: clamp(14px, 4vw, 16px);">🏆 GANADOR/A</p>' : ''}
                         </div>
-                        <div style="text-align: center; ${winner === 2 ? 'border: 2px solid #dc770e; border-radius: 10px; padding: 5px;' : ''}">
+                        <div class="result-img-container" style="${winner === 2 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0;' : ''}">
                             <img src="${pair.image2.url}" class="result-img">
-                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person2}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: 18px; margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
-                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
+                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: clamp(16px, 4vw, 18px);">${names.person2}</p>
+                            <p style="color: #dc770e; font-weight: 600; font-size: clamp(18px, 5vw, 20px); margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
+                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px; font-size: clamp(14px, 4vw, 16px);">🏆 GANADOR/A</p>' : ''}
                         </div>
                     </div>
                     <div class="result-stats">
-                        <p style="text-align: center; font-weight: 600; margin-bottom: 10px;">Total de votos: ${totalVotes}</p>
+                        <p style="text-align: center; font-weight: 600; margin-bottom: 10px; font-size: clamp(16px, 4vw, 18px);">Total de votos: ${totalVotes}</p>
                         ${totalVotes > 0 ? `
                             <div class="progress-bar">
                                 <div class="progress-fill" style="width: ${totalVotes > 0 ? (pairVotes.image1 / totalVotes * 100) : 50}%">
                                     ${names.person1}: ${totalVotes > 0 ? Math.round(pairVotes.image1 / totalVotes * 100) : 0}%
                                 </div>
                             </div>
-                            <p style="text-align: center; font-size: 14px; color: #666; margin-top: 5px;">
+                            <p style="text-align: center; font-size: clamp(14px, 3vw, 16px); color: #666; margin-top: 5px;">
                                 ${names.person2}: ${totalVotes > 0 ? Math.round(pairVotes.image2 / totalVotes * 100) : 0}%
                             </p>
-                        ` : '<p style="text-align: center; color: #666;">Sin votos aún</p>'}
-                        ${winner === 0 && totalVotes > 0 ? '<p style="text-align: center; color: #fbd21d; font-weight: 600; margin-top: 10px;">🤝 EMPATE</p>' : ''}
+                        ` : '<p style="text-align: center; color: #666; font-size: clamp(14px, 3vw, 16px);">Sin votos aún</p>'}
+                        ${winner === 0 && totalVotes > 0 ? '<p style="text-align: center; color: #fbd21d; font-weight: 600; margin-top: 10px; font-size: clamp(16px, 4vw, 18px);">🤝 EMPATE</p>' : ''}
                     </div>
                 `;
                 
