@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Votación de Imágenes</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, push, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+        // Configuración de Firebase (tendrás que reemplazar con tu config)
+        const firebaseConfig = {
+            // IMPORTANTE: Reemplaza esta configuración con la tuya
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROYECTO.firebaseapp.com", 
+            databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+            projectId: "TU_PROYECTO",
+            storageBucket: "TU_PROYECTO.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "TU_APP_ID"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        window.database = getDatabase(app);
+        window.storage = getStorage(app);
+        window.firebaseRefs = { ref, set, get, push, onValue, serverTimestamp, storageRef, uploadBytes, getDownloadURL };
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -36,6 +62,28 @@
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
             font-weight: 700;
+        }
+
+        .firebase-setup {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 3px solid #dc770e;
+        }
+
+        .firebase-setup h3 {
+            color: #dc770e;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .firebase-setup code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
         }
 
         /* Estilos para el login */
@@ -424,11 +472,6 @@
             border-radius: 10px;
         }
 
-        .winner {
-            border: 3px solid #dc770e;
-            background: #fffbf0;
-        }
-
         .status-message {
             text-align: center;
             padding: 20px;
@@ -476,6 +519,12 @@
             font-family: 'Dosis', sans-serif;
         }
 
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
         @media (max-width: 768px) {
             .images-comparison {
                 flex-direction: column;
@@ -497,6 +546,29 @@
 </head>
 <body>
     <div class="container">
+        <!-- Instrucciones de configuración Firebase -->
+        <div id="firebase-setup" class="firebase-setup">
+            <h3>🔥 Configuración Firebase Requerida</h3>
+            <p><strong>Para que la app funcione globalmente, necesitas:</strong></p>
+            <ol style="margin: 15px 0; padding-left: 30px;">
+                <li>Crear un proyecto en <a href="https://console.firebase.google.com" target="_blank" style="color: #dc770e;">Firebase Console</a></li>
+                <li>Activar <strong>Realtime Database</strong> y <strong>Storage</strong></li>
+                <li>Copiar tu configuración y reemplazar en el código:</li>
+            </ol>
+            <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 12px; overflow-x: auto;">
+const firebaseConfig = {
+    apiKey: "tu-api-key-aqui",
+    authDomain: "tu-proyecto.firebaseapp.com",
+    databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
+    projectId: "tu-proyecto-id",
+    storageBucket: "tu-proyecto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "tu-app-id"
+};
+            </pre>
+            <p style="margin-top: 15px;"><strong>Una vez configurado, recarga la página.</strong></p>
+        </div>
+
         <!-- Pantalla de Login -->
         <div id="login-screen">
             <div class="header">
@@ -535,7 +607,7 @@
                         </button>
                         
                         <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                            Podrás subir imágenes, ver resultados y votar
+                            Podrás subir imágenes y ver resultados
                         </p>
                     </div>
                 </div>
@@ -546,7 +618,7 @@
         <div id="main-app" style="display: none;">
             <div class="header">
                 <h1>🗳️ Sistema de Votación de Imágenes</h1>
-                <p>Carga pares de imágenes y permite que los usuarios voten por sus favoritas</p>
+                <p>Sistema global - Los datos se comparten entre todos los usuarios</p>
             </div>
 
             <!-- Información del usuario -->
@@ -579,10 +651,12 @@
             <!-- Sección de Votación -->
             <div id="vote-section" class="section active">
                 <div class="voting-container">
-                    <div id="votingContent"></div>
+                    <div id="votingContent">
+                        <div class="loading">🔄 Cargando imágenes disponibles...</div>
+                    </div>
                     <div class="navigation-controls">
                         <button class="nav-control" id="prevBtn" onclick="previousPair()">⬅️ Anterior</button>
-                        <span id="pairCounter" style="font-weight: 600; font-size: 18px;">Par 1 de 0</span>
+                        <span id="pairCounter" style="font-weight: 600; font-size: 18px;">Cargando...</span>
                         <button class="nav-control" id="nextBtn" onclick="nextPair()">Siguiente ➡️</button>
                     </div>
                 </div>
@@ -591,7 +665,9 @@
             <!-- Sección de Resultados -->
             <div id="results-section" class="section">
                 <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600;">📊 Resultados de Votación</h2>
-                <div id="resultsContent" class="results-grid"></div>
+                <div id="resultsContent" class="results-grid">
+                    <div class="loading">🔄 Cargando resultados...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -601,10 +677,11 @@
         let imagePairs = [];
         let currentPairIndex = 0;
         let votes = {};
-        let votedPairs = new Set();
         let currentUser = null;
         let userRole = null;
-        let personNames = {}; // Almacenar nombres de personas para cada par
+        let personNames = {};
+        let userIP = null;
+        let votedPairs = new Set();
 
         // Credenciales de administrador
         const ADMIN_CREDENTIALS = {
@@ -612,15 +689,85 @@
             password: 'votacion2024'
         };
 
-        // Generar un ID único para simular IP
-        const userIP = 'user_' + Math.random().toString(36).substr(2, 9);
+        // Generar IP único para el usuario
+        function generateUserIP() {
+            if (!userIP) {
+                userIP = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('userIP', userIP);
+            }
+            return userIP;
+        }
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
-            loadVotesFromStorage();
-            loadImagePairsFromStorage();
-            loadPersonNamesFromStorage();
+            userIP = localStorage.getItem('userIP') || generateUserIP();
+            
+            // Verificar si Firebase está configurado
+            setTimeout(() => {
+                if (window.database) {
+                    document.getElementById('firebase-setup').style.display = 'none';
+                    loadDataFromFirebase();
+                } else {
+                    showMessage('Firebase no está configurado. Sigue las instrucciones arriba.', 'error');
+                }
+            }, 1000);
         });
+
+        // Cargar datos desde Firebase
+        async function loadDataFromFirebase() {
+            try {
+                const { ref, get, onValue } = window.firebaseRefs;
+                
+                // Cargar pares de imágenes
+                const pairsRef = ref(window.database, 'imagePairs');
+                onValue(pairsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        imagePairs = Object.values(data);
+                        if (userRole === 'admin') displayImagePairs();
+                        if (userRole === 'voter' || !userRole) setupVoting();
+                    }
+                });
+
+                // Cargar nombres de personas
+                const namesRef = ref(window.database, 'personNames');
+                onValue(namesRef, (snapshot) => {
+                    const data = snapshot.val();
+                    personNames = data || {};
+                });
+
+                // Cargar votos
+                const votesRef = ref(window.database, 'votes');
+                onValue(votesRef, (snapshot) => {
+                    const data = snapshot.val();
+                    votes = data || {};
+                    if (userRole === 'admin') displayResults();
+                });
+
+                // Cargar IPs que han votado
+                loadVotedIPs();
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showMessage('Error conectando con Firebase. Verifica la configuración.', 'error');
+            }
+        }
+
+        // Cargar IPs que han votado
+        async function loadVotedIPs() {
+            try {
+                const { ref, get } = window.firebaseRefs;
+                const ipRef = ref(window.database, `votedIPs/${userIP}`);
+                const snapshot = await get(ipRef);
+                
+                if (snapshot.exists()) {
+                    const votedPairsList = snapshot.val();
+                    votedPairs = new Set(votedPairsList || []);
+                }
+            } catch (error) {
+                console.error('Error cargando IPs votantes:', error);
+            }
+        }
 
         // Login como votante
         function loginAsVoter() {
@@ -644,7 +791,6 @@
                 showMessage('¡Bienvenido Administrador! Tienes acceso completo al sistema.', 'success');
             } else {
                 showMessage('Usuario o contraseña incorrectos.', 'error');
-                // Limpiar campos
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
             }
@@ -656,25 +802,21 @@
             document.getElementById('main-app').style.display = 'block';
             updateUserInfo();
             setupDragAndDrop();
+            loadDataFromFirebase();
         }
 
         // Configurar interfaz para votante
         function setupVoterInterface() {
-            // Deshabilitar botones de admin
             document.getElementById('uploadBtn').disabled = true;
             document.getElementById('resultsBtn').disabled = true;
-            
-            // Ir directamente a votación
             showSection('vote');
         }
 
         // Configurar interfaz para administrador
         function setupAdminInterface() {
-            // Habilitar botones de admin, deshabilitar votar
             document.getElementById('uploadBtn').disabled = false;
             document.getElementById('resultsBtn').disabled = false;
             
-            // Deshabilitar botón de votar para admin
             const voteBtn = document.querySelector('button[onclick="showSection(\'vote\')"]');
             if (voteBtn) {
                 voteBtn.disabled = true;
@@ -682,7 +824,6 @@
                 voteBtn.title = 'Los administradores no pueden votar';
             }
             
-            // Mostrar sección de carga
             showSection('upload');
         }
 
@@ -702,7 +843,6 @@
             document.getElementById('login-screen').style.display = 'block';
             document.getElementById('main-app').style.display = 'none';
             
-            // Limpiar campos de login
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             
@@ -756,49 +896,92 @@
         }
 
         // Procesar archivos de imagen
-        function processImageFiles(files) {
+        async function processImageFiles(files) {
             const pairs = {};
             
-            files.forEach(file => {
-                const fileName = file.name;
-                const lastDot = fileName.lastIndexOf('.');
-                const nameWithoutExt = fileName.substring(0, lastDot);
-                const extension = fileName.substring(lastDot);
-                
-                // Verificar si termina en -1 o -2
-                if (nameWithoutExt.endsWith('-1')) {
-                    const baseName = nameWithoutExt.slice(0, -2);
-                    if (!pairs[baseName]) pairs[baseName] = {};
-                    pairs[baseName].image1 = file;
-                    pairs[baseName].name = baseName;
-                } else if (nameWithoutExt.endsWith('-2')) {
-                    const baseName = nameWithoutExt.slice(0, -2);
-                    if (!pairs[baseName]) pairs[baseName] = {};
-                    pairs[baseName].image2 = file;
-                    pairs[baseName].name = baseName;
-                }
-            });
-
-            // Filtrar pares completos
-            const completePairs = Object.values(pairs).filter(pair => pair.image1 && pair.image2);
+            // Mostrar mensaje de carga
+            showMessage('Subiendo imágenes a Firebase...', 'warning');
             
-            if (completePairs.length === 0) {
-                showMessage('No se encontraron pares completos de imágenes (terminadas en -1 y -2).', 'warning');
-                return;
-            }
-
-            // Agregar pares a la lista
-            completePairs.forEach(pair => {
-                const existingIndex = imagePairs.findIndex(p => p.name === pair.name);
-                if (existingIndex >= 0) {
-                    imagePairs[existingIndex] = pair;
-                } else {
-                    imagePairs.push(pair);
+            try {
+                const { storageRef, uploadBytes, getDownloadURL } = window.firebaseRefs;
+                
+                // Procesar archivos y subirlos a Firebase Storage
+                for (const file of files) {
+                    const fileName = file.name;
+                    const lastDot = fileName.lastIndexOf('.');
+                    const nameWithoutExt = fileName.substring(0, lastDot);
+                    
+                    if (nameWithoutExt.endsWith('-1')) {
+                        const baseName = nameWithoutExt.slice(0, -2);
+                        if (!pairs[baseName]) pairs[baseName] = {};
+                        
+                        // Subir imagen a Firebase Storage
+                        const imageRef = storageRef(window.storage, `images/${fileName}`);
+                        const snapshot = await uploadBytes(imageRef, file);
+                        const downloadURL = await getDownloadURL(snapshot.ref);
+                        
+                        pairs[baseName].image1 = {
+                            name: fileName,
+                            url: downloadURL
+                        };
+                        pairs[baseName].name = baseName;
+                    } else if (nameWithoutExt.endsWith('-2')) {
+                        const baseName = nameWithoutExt.slice(0, -2);
+                        if (!pairs[baseName]) pairs[baseName] = {};
+                        
+                        // Subir imagen a Firebase Storage
+                        const imageRef = storageRef(window.storage, `images/${fileName}`);
+                        const snapshot = await uploadBytes(imageRef, file);
+                        const downloadURL = await getDownloadURL(snapshot.ref);
+                        
+                        pairs[baseName].image2 = {
+                            name: fileName,
+                            url: downloadURL
+                        };
+                        pairs[baseName].name = baseName;
+                    }
                 }
-            });
 
-            // Mostrar formulario para asignar nombres
-            showPersonNamesForm(completePairs);
+                // Filtrar pares completos
+                const completePairs = Object.values(pairs).filter(pair => pair.image1 && pair.image2);
+                
+                if (completePairs.length === 0) {
+                    showMessage('No se encontraron pares completos de imágenes (terminadas en -1 y -2).', 'warning');
+                    return;
+                }
+
+                // Guardar pares en Firebase
+                await saveImagePairsToFirebase(completePairs);
+                
+                // Mostrar formulario para asignar nombres
+                showPersonNamesForm(completePairs);
+
+            } catch (error) {
+                console.error('Error subiendo imágenes:', error);
+                showMessage('Error subiendo imágenes a Firebase.', 'error');
+            }
+        }
+
+        // Guardar pares de imágenes en Firebase
+        async function saveImagePairsToFirebase(newPairs) {
+            try {
+                const { ref, set, push } = window.firebaseRefs;
+                
+                for (const pair of newPairs) {
+                    const pairRef = push(ref(window.database, 'imagePairs'));
+                    await set(pairRef, {
+                        id: pairRef.key,
+                        name: pair.name,
+                        image1: pair.image1,
+                        image2: pair.image2,
+                        createdAt: Date.now()
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error guardando pares:', error);
+                throw error;
+            }
         }
 
         // Mostrar formulario para asignar nombres a personas
@@ -839,10 +1022,6 @@
             `;
 
             newPairs.forEach((pair, index) => {
-                const url1 = URL.createObjectURL(pair.image1);
-                const url2 = URL.createObjectURL(pair.image2);
-                
-                // Obtener nombres existentes si ya están guardados
                 const existingNames = personNames[pair.name] || { person1: '', person2: '' };
 
                 formHTML += `
@@ -851,7 +1030,7 @@
                         
                         <div style="display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
                             <div style="text-align: center;">
-                                <img src="${url1}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
+                                <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
                                 <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image1.name}</p>
                                 <input 
                                     type="text" 
@@ -859,13 +1038,14 @@
                                     placeholder="Nombre de la persona"
                                     value="${existingNames.person1}"
                                     style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
+                                    required
                                 >
                             </div>
                             
                             <div style="font-size: 24px; color: #dc770e; font-weight: bold;">VS</div>
                             
                             <div style="text-align: center;">
-                                <img src="${url2}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
+                                <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
                                 <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image2.name}</p>
                                 <input 
                                     type="text" 
@@ -873,6 +1053,7 @@
                                     placeholder="Nombre de la persona"
                                     value="${existingNames.person2}"
                                     style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
+                                    required
                                 >
                             </div>
                         </div>
@@ -894,11 +1075,15 @@
             formContent.innerHTML = formHTML;
             formContainer.appendChild(formContent);
             document.body.appendChild(formContainer);
+            
+            setTimeout(() => {
+                const firstInput = document.getElementById('person1_0');
+                if (firstInput) firstInput.focus();
+            }, 100);
         }
 
         // Nueva función para guardar nombres desde el formulario
-        function savePersonNamesFromForm() {
-            // Obtener todos los campos de nombre del formulario
+        async function savePersonNamesFromForm() {
             const form = document.getElementById('personNamesForm');
             const person1Inputs = form.querySelectorAll('[id^="person1_"]');
             const person2Inputs = form.querySelectorAll('[id^="person2_"]');
@@ -906,7 +1091,8 @@
             let allFieldsFilled = true;
             let savedCount = 0;
             
-            // Procesar cada par
+            // Recopilar nombres
+            const namesToSave = {};
             for (let i = 0; i < person1Inputs.length; i++) {
                 const person1 = person1Inputs[i].value.trim();
                 const person2 = person2Inputs[i].value.trim();
@@ -916,10 +1102,9 @@
                     continue;
                 }
                 
-                // Encontrar el nombre del par correspondiente
-                const pairName = imagePairs[i] ? imagePairs[i].name : null;
+                const pairName = imagePairs[imagePairs.length - person1Inputs.length + i]?.name;
                 if (pairName) {
-                    personNames[pairName] = {
+                    namesToSave[pairName] = {
                         person1: person1,
                         person2: person2
                     };
@@ -937,67 +1122,33 @@
                 return;
             }
             
-            // Cerrar formulario
-            const formElement = document.getElementById('personNamesForm');
-            if (formElement) {
-                formElement.remove();
-            }
-            
-            // Actualizar visualización
-            displayImagePairs();
-            saveImagePairsToStorage();
-            savePersonNamesToStorage();
-            
-            showMessage(`Se guardaron ${savedCount} pares con nombres correctamente.`, 'success');
-        }
-
-        // Guardar nombres de personas (función original simplificada)
-        function savePersonNames(pairNames) {
-            let allFieldsFilled = true;
-            
-            pairNames.forEach((pairName, index) => {
-                const person1 = document.getElementById(`person1_${index}`).value.trim();
-                const person2 = document.getElementById(`person2_${index}`).value.trim();
-                
-                if (!person1 || !person2) {
-                    allFieldsFilled = false;
-                    return;
+            try {
+                // Guardar nombres en Firebase
+                const { ref, set } = window.firebaseRefs;
+                for (const [pairName, names] of Object.entries(namesToSave)) {
+                    const nameRef = ref(window.database, `personNames/${pairName}`);
+                    await set(nameRef, names);
                 }
                 
-                personNames[pairName] = {
-                    person1: person1,
-                    person2: person2
-                };
-            });
-            
-            if (!allFieldsFilled) {
-                showMessage('Por favor, completa todos los nombres antes de continuar.', 'warning');
-                return;
+                // Cerrar formulario
+                const formElement = document.getElementById('personNamesForm');
+                if (formElement) formElement.remove();
+                
+                showMessage(`Se guardaron ${savedCount} pares con nombres correctamente.`, 'success');
+                
+            } catch (error) {
+                console.error('Error guardando nombres:', error);
+                showMessage('Error guardando nombres en Firebase.', 'error');
             }
-            
-            // Cerrar formulario
-            const formElement = document.getElementById('personNamesForm');
-            if (formElement) {
-                formElement.remove();
-            }
-            
-            // Actualizar visualización
-            displayImagePairs();
-            saveImagePairsToStorage();
-            savePersonNamesToStorage();
-            
-            showMessage(`Se guardaron ${pairNames.length} pares con nombres correctamente.`, 'success');
         }
 
         // Cancelar asignación de nombres
         function cancelPersonNames() {
             const formElement = document.getElementById('personNamesForm');
-            if (formElement) {
-                formElement.remove();
-            }
+            if (formElement) formElement.remove();
         }
 
-        // Mostrar pares de imágenes cargados
+        // Mostrar pares de imágenes
         function displayImagePairs() {
             const imageList = document.getElementById('imageList');
             imageList.innerHTML = '';
@@ -1006,23 +1157,19 @@
                 const pairDiv = document.createElement('div');
                 pairDiv.className = 'image-pair';
                 
-                const url1 = URL.createObjectURL(pair.image1);
-                const url2 = URL.createObjectURL(pair.image2);
-                
-                // Obtener nombres de las personas
                 const names = personNames[pair.name] || { person1: 'Persona 1', person2: 'Persona 2' };
                 
                 pairDiv.innerHTML = `
                     <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">${pair.name}</h4>
                     <div style="display: flex; gap: 10px; justify-content: center;">
                         <div style="text-align: center;">
-                            <img src="${url1}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                            <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
                             <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person1}</p>
                             <p style="font-size: 12px; color: #666;">${pair.image1.name}</p>
                         </div>
                         <div style="display: flex; align-items: center; font-size: 20px; font-weight: bold; color: #dc770e;">VS</div>
                         <div style="text-align: center;">
-                            <img src="${url2}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                            <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
                             <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person2}</p>
                             <p style="font-size: 12px; color: #666;">${pair.image2.name}</p>
                         </div>
@@ -1032,7 +1179,7 @@
                             <button onclick="editPersonNames('${pair.name}', ${index})" style="flex: 1; padding: 8px; background: #fbd21d; color: #000; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
                                 ✏️ Editar Nombres
                             </button>
-                            <button onclick="removePair(${index})" style="flex: 1; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
+                            <button onclick="removePair('${pair.id}')" style="flex: 1; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
                                 🗑️ Eliminar Par
                             </button>
                         </div>
@@ -1045,48 +1192,47 @@
 
         // Editar nombres de personas
         function editPersonNames(pairName, index) {
-            const pair = imagePairs[index];
-            showPersonNamesForm([pair]);
+            const pair = imagePairs.find(p => p.name === pairName);
+            if (pair) showPersonNamesForm([pair]);
         }
 
         // Eliminar par de imágenes
-        function removePair(index) {
+        async function removePair(pairId) {
             if (userRole !== 'admin') {
                 showMessage('No tienes permisos para eliminar imágenes.', 'error');
                 return;
             }
 
-            const pairName = imagePairs[index].name;
-            imagePairs.splice(index, 1);
-            
-            // Eliminar nombres asociados
-            delete personNames[pairName];
-            
-            displayImagePairs();
-            saveImagePairsToStorage();
-            savePersonNamesToStorage();
-            showMessage('Par de imágenes eliminado.', 'success');
+            try {
+                const { ref, set } = window.firebaseRefs;
+                
+                // Eliminar par de Firebase
+                const pairRef = ref(window.database, `imagePairs/${pairId}`);
+                await set(pairRef, null);
+                
+                showMessage('Par de imágenes eliminado.', 'success');
+                
+            } catch (error) {
+                console.error('Error eliminando par:', error);
+                showMessage('Error eliminando par de imágenes.', 'error');
+            }
         }
 
         // Cambiar sección
         function showSection(section) {
-            // Verificar permisos
             if ((section === 'upload' || section === 'results') && userRole !== 'admin') {
                 showMessage('No tienes permisos para acceder a esta sección.', 'error');
                 return;
             }
             
-            // Verificar que admin no pueda votar
             if (section === 'vote' && userRole === 'admin') {
                 showMessage('Los administradores no pueden votar.', 'error');
                 return;
             }
 
-            // Ocultar todas las secciones
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Mostrar sección seleccionada
             document.getElementById(section + '-section').classList.add('active');
             event.target.classList.add('active');
             
@@ -1130,10 +1276,6 @@
             const pairId = pair.name;
             const hasVoted = votedPairs.has(pairId);
             
-            const url1 = URL.createObjectURL(pair.image1);
-            const url2 = URL.createObjectURL(pair.image2);
-            
-            // Obtener nombres de las personas
             const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
 
             document.getElementById('votingContent').innerHTML = `
@@ -1143,14 +1285,14 @@
                     ${hasVoted ? '<div class="status-message success">Ya has votado en este par</div>' : ''}
                     <div class="images-comparison">
                         <div class="vote-option">
-                            <img src="${url1}" alt="${names.person1}">
+                            <img src="${pair.image1.url}" alt="${names.person1}">
                             <h4 style="margin-bottom: 10px; font-weight: 600; color: #dc770e;">${names.person1}</h4>
                             <button class="vote-btn" onclick="vote('${pairId}', 1)" ${hasVoted ? 'disabled' : ''}>
                                 ${hasVoted ? '✓ Votado' : '👍 Votar por ' + names.person1}
                             </button>
                         </div>
                         <div class="vote-option">
-                            <img src="${url2}" alt="${names.person2}">
+                            <img src="${pair.image2.url}" alt="${names.person2}">
                             <h4 style="margin-bottom: 10px; font-weight: 600; color: #dc770e;">${names.person2}</h4>
                             <button class="vote-btn" onclick="vote('${pairId}', 2)" ${hasVoted ? 'disabled' : ''}>
                                 ${hasVoted ? '✓ Votado' : '👍 Votar por ' + names.person2}
@@ -1162,27 +1304,34 @@
         }
 
         // Votar por una imagen
-        function vote(pairId, imageNumber) {
+        async function vote(pairId, imageNumber) {
             if (votedPairs.has(pairId)) {
                 showMessage('Ya has votado en este par de imágenes.', 'warning');
                 return;
             }
 
-            // Inicializar votos si no existen
-            if (!votes[pairId]) {
-                votes[pairId] = { image1: 0, image2: 0 };
+            try {
+                const { ref, get, set } = window.firebaseRefs;
+                
+                // Actualizar votos en Firebase
+                const voteRef = ref(window.database, `votes/${pairId}/image${imageNumber}`);
+                const snapshot = await get(voteRef);
+                const currentVotes = snapshot.val() || 0;
+                await set(voteRef, currentVotes + 1);
+                
+                // Registrar IP como votante
+                votedPairs.add(pairId);
+                const ipRef = ref(window.database, `votedIPs/${userIP}`);
+                await set(ipRef, Array.from(votedPairs));
+                
+                // Actualizar display
+                displayVotingPair();
+                showMessage('¡Voto registrado correctamente!', 'success');
+                
+            } catch (error) {
+                console.error('Error votando:', error);
+                showMessage('Error registrando voto.', 'error');
             }
-
-            // Registrar voto
-            votes[pairId]['image' + imageNumber]++;
-            votedPairs.add(pairId);
-
-            // Guardar en storage
-            saveVotesToStorage();
-
-            // Actualizar display
-            displayVotingPair();
-            showMessage('¡Voto registrado correctamente!', 'success');
         }
 
         // Navegación entre pares
@@ -1231,10 +1380,6 @@
                 const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
                 const totalVotes = pairVotes.image1 + pairVotes.image2;
                 
-                const url1 = URL.createObjectURL(pair.image1);
-                const url2 = URL.createObjectURL(pair.image2);
-                
-                // Obtener nombres de las personas
                 const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
 
                 const winner = pairVotes.image1 > pairVotes.image2 ? 1 : 
@@ -1247,15 +1392,15 @@
                     <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${pair.name}</h3>
                     <div class="result-images">
                         <div style="text-align: center; ${winner === 1 ? 'border: 2px solid #dc770e; border-radius: 10px; padding: 5px;' : ''}">
-                            <img src="${url1}" class="result-img">
+                            <img src="${pair.image1.url}" class="result-img">
                             <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person1}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: 18px; margin-top: 5px;">${pairVotes.image1} votos</p>
+                            <p style="color: #dc770e; font-weight: 600; font-size: 18px; margin-top: 5px;">${pairVotes.image1 || 0} votos</p>
                             ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
                         </div>
                         <div style="text-align: center; ${winner === 2 ? 'border: 2px solid #dc770e; border-radius: 10px; padding: 5px;' : ''}">
-                            <img src="${url2}" class="result-img">
+                            <img src="${pair.image2.url}" class="result-img">
                             <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person2}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: 18px; margin-top: 5px;">${pairVotes.image2} votos</p>
+                            <p style="color: #dc770e; font-weight: 600; font-size: 18px; margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
                             ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
                         </div>
                     </div>
@@ -1279,86 +1424,12 @@
             });
         }
 
-        // Guardar votos en localStorage
-        function saveVotesToStorage() {
-            try {
-                const data = {
-                    votes: votes,
-                    votedPairs: Array.from(votedPairs),
-                    userIP: userIP
-                };
-                localStorage.setItem('votingData', JSON.stringify(data));
-            } catch (e) {
-                console.log('Error guardando datos:', e);
-            }
-        }
-
-        // Cargar votos desde localStorage
-        function loadVotesFromStorage() {
-            try {
-                const savedData = localStorage.getItem('votingData');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                    votes = data.votes || {};
-                    votedPairs = new Set(data.votedPairs || []);
-                }
-            } catch (e) {
-                console.log('Error cargando datos:', e);
-            }
-        }
-
-        // Guardar nombres de personas en localStorage
-        function savePersonNamesToStorage() {
-            try {
-                localStorage.setItem('personNames', JSON.stringify(personNames));
-            } catch (e) {
-                console.log('Error guardando nombres:', e);
-            }
-        }
-
-        // Cargar nombres de personas desde localStorage
-        function loadPersonNamesFromStorage() {
-            try {
-                const savedNames = localStorage.getItem('personNames');
-                if (savedNames) {
-                    personNames = JSON.parse(savedNames);
-                }
-            } catch (e) {
-                console.log('Error cargando nombres:', e);
-            }
-        }
-
-        // Guardar pares de imágenes en localStorage
-        function saveImagePairsToStorage() {
-            try {
-                // No podemos guardar archivos directamente, solo referencias
-                const pairNames = imagePairs.map(pair => pair.name);
-                localStorage.setItem('imagePairNames', JSON.stringify(pairNames));
-            } catch (e) {
-                console.log('Error guardando pares:', e);
-            }
-        }
-
-        // Cargar pares de imágenes desde localStorage
-        function loadImagePairsFromStorage() {
-            try {
-                // Los archivos no se pueden persistir, solo cargamos cuando hay admin
-                const savedPairNames = localStorage.getItem('imagePairNames');
-                if (savedPairNames) {
-                    // Los pares se cargarán cuando el admin suba los archivos nuevamente
-                }
-            } catch (e) {
-                console.log('Error cargando pares:', e);
-            }
-        }
-
         // Mostrar mensajes de estado
         function showMessage(message, type) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `status-message ${type}`;
             messageDiv.textContent = message;
             
-            // Posicionar el mensaje en la parte superior
             messageDiv.style.position = 'fixed';
             messageDiv.style.top = '20px';
             messageDiv.style.left = '50%';
