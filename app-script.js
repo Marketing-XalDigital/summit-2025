@@ -1,6 +1,6 @@
 class SlotMachineApp {
     constructor() {
-        this.currentUser = null;
+        this.currentCompetitors = null;
         this.hasSpun = false;
         this.texts = [];
         this.adminEmails = ['camila.hernandez@xaldigital.com', 'sergio.sanchez@xaldigital.com', 'valeria.lorenzana@xaldigital.com'];
@@ -16,9 +16,11 @@ class SlotMachineApp {
         this.gameScreen = document.getElementById('game-screen');
         this.loginForm = document.getElementById('login-form');
         this.userNameSpan = document.getElementById('user-name');
-        this.logoutBtn = document.getElementById('logout-btn');
+        this.competitor1Name = document.getElementById('competitor1-name');
+        this.competitor2Name = document.getElementById('competitor2-name');
         this.exportBtn = document.getElementById('export-btn');
         this.clearBtn = document.getElementById('clear-btn');
+        this.newCompetitionBtn = document.getElementById('new-competition-btn');
         this.spinBtn = document.getElementById('spin-btn');
         this.reels = [
             document.getElementById('reel1'),
@@ -36,16 +38,16 @@ class SlotMachineApp {
     }
 
     setupEventListeners() {
-        this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
-        this.logoutBtn.addEventListener('click', () => this.handleLogout());
+        this.loginForm.addEventListener('submit', (e) => this.handleRegistration(e));
+        this.newCompetitionBtn.addEventListener('click', () => this.handleNewCompetition());
         this.exportBtn.addEventListener('click', () => this.exportToExcel());
         this.clearBtn.addEventListener('click', () => this.clearAllData());
         this.spinBtn.addEventListener('click', () => this.handleSpin());
     }
 
     initializeStorage() {
-        if (!localStorage.getItem('usuarios')) {
-            localStorage.setItem('usuarios', JSON.stringify([]));
+        if (!localStorage.getItem('competidores')) {
+            localStorage.setItem('competidores', JSON.stringify([]));
         }
         if (!localStorage.getItem('jugadas')) {
             localStorage.setItem('jugadas', JSON.stringify([]));
@@ -57,70 +59,140 @@ class SlotMachineApp {
         return re.test(email);
     }
 
-    handleLogin(e) {
+    handleRegistration(e) {
         e.preventDefault();
         
-        const nombre = document.getElementById('nombre').value.trim();
-        const email = document.getElementById('email').value.trim();
+        const competitor1 = {
+            nombre: document.getElementById('nombre1').value.trim(),
+            email: document.getElementById('email1').value.trim()
+        };
         
-        if (!nombre || !email) {
-            alert('Por favor, completa todos los campos');
+        const competitor2 = {
+            nombre: document.getElementById('nombre2').value.trim(),
+            email: document.getElementById('email2').value.trim()
+        };
+        
+        // Validar que todos los campos estén completos
+        if (!competitor1.nombre || !competitor1.email || !competitor2.nombre || !competitor2.email) {
+            alert('Por favor, completa todos los campos para ambos competidores');
             return;
         }
         
-        if (!this.validateEmail(email)) {
-            alert('Por favor, ingresa un correo válido');
+        // Validar emails
+        if (!this.validateEmail(competitor1.email)) {
+            alert('Por favor, ingresa un correo válido para el Competidor 1');
             return;
         }
         
-        this.currentUser = { nombre, email };
+        if (!this.validateEmail(competitor2.email)) {
+            alert('Por favor, ingresa un correo válido para el Competidor 2');
+            return;
+        }
+        
+        // Validar que no sean el mismo email
+        if (competitor1.email === competitor2.email) {
+            alert('Los competidores deben tener correos electrónicos diferentes');
+            return;
+        }
+        
+        this.currentCompetitors = {
+            competitor1,
+            competitor2
+        };
         this.hasSpun = false;
         
-        // Registrar login
-        this.addUserToStorage(nombre, email);
+        // Registrar ambos competidores
+        this.addCompetitorsToStorage(competitor1, competitor2);
         
         // Cambiar a pantalla de juego
         this.showGameScreen();
     }
 
-    addUserToStorage(nombre, email) {
+    addCompetitorsToStorage(competitor1, competitor2) {
         const now = new Date().toLocaleString('es-ES');
-        const usuarios = JSON.parse(localStorage.getItem('usuarios'));
-        usuarios.push({ nombre, email, fechaLogin: now });
-        localStorage.setItem('usuarios', JSON.stringify(usuarios));
+        const competidores = JSON.parse(localStorage.getItem('competidores'));
+        
+        // Agregar entrada de competencia con ambos competidores
+        competidores.push({
+            competidor1: {
+                nombre: competitor1.nombre,
+                email: competitor1.email
+            },
+            competidor2: {
+                nombre: competitor2.nombre,
+                email: competitor2.email
+            },
+            fechaRegistro: now,
+            competenciaId: Date.now() // ID único para la competencia
+        });
+        
+        localStorage.setItem('competidores', JSON.stringify(competidores));
     }
 
-    addGameToStorage(nombre, email, resultado1, resultado2, resultado3) {
+    addGameToStorage(resultado1, resultado2, resultado3) {
         const now = new Date().toLocaleString('es-ES');
         const jugadas = JSON.parse(localStorage.getItem('jugadas'));
-        jugadas.push({ nombre, email, resultado1, resultado2, resultado3, fechaJugada: now });
+        
+        jugadas.push({
+            competidor1: {
+                nombre: this.currentCompetitors.competitor1.nombre,
+                email: this.currentCompetitors.competitor1.email
+            },
+            competidor2: {
+                nombre: this.currentCompetitors.competitor2.nombre,
+                email: this.currentCompetitors.competitor2.email
+            },
+            resultado1,
+            resultado2,
+            resultado3,
+            fechaJugada: now,
+            competenciaId: this.currentCompetitors.competenciaId || Date.now()
+        });
+        
         localStorage.setItem('jugadas', JSON.stringify(jugadas));
     }
 
     exportToExcel() {
-        const usuarios = JSON.parse(localStorage.getItem('usuarios'));
+        const competidores = JSON.parse(localStorage.getItem('competidores'));
         const jugadas = JSON.parse(localStorage.getItem('jugadas'));
         
         const workbook = XLSX.utils.book_new();
         
-        // Hoja Usuarios
-        const usuariosData = [['Nombre', 'Correo', 'Fecha/Hora Login']];
-        usuarios.forEach(u => usuariosData.push([u.nombre, u.email, u.fechaLogin]));
-        const usuariosWS = XLSX.utils.aoa_to_sheet(usuariosData);
-        XLSX.utils.book_append_sheet(workbook, usuariosWS, 'Usuarios');
+        // Hoja Competidores
+        const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Fecha/Hora Registro', 'ID Competencia']];
+        competidores.forEach(c => competidoresData.push([
+            c.competidor1.nombre, 
+            c.competidor1.email, 
+            c.competidor2.nombre, 
+            c.competidor2.email, 
+            c.fechaRegistro,
+            c.competenciaId
+        ]));
+        const competidoresWS = XLSX.utils.aoa_to_sheet(competidoresData);
+        XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
         
         // Hoja Jugadas
-        const jugadasData = [['Nombre', 'Correo', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada']];
-        jugadas.forEach(j => jugadasData.push([j.nombre, j.email, j.resultado1, j.resultado2, j.resultado3, j.fechaJugada]));
+        const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
+        jugadas.forEach(j => jugadasData.push([
+            j.competidor1.nombre, 
+            j.competidor1.email, 
+            j.competidor2.nombre, 
+            j.competidor2.email, 
+            j.resultado1, 
+            j.resultado2, 
+            j.resultado3, 
+            j.fechaJugada,
+            j.competenciaId
+        ]));
         const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasData);
         XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
         
-        XLSX.writeFile(workbook, 'tragamonedas_datos.xlsx');
+        XLSX.writeFile(workbook, 'tragamonedas_competidores.xlsx');
     }
     
     clearAllData() {
         if (confirm('¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
-            localStorage.removeItem('usuarios');
+            localStorage.removeItem('competidores');
             localStorage.removeItem('jugadas');
             this.initializeStorage();
             alert('Todos los datos han sido eliminados.');
@@ -130,18 +202,28 @@ class SlotMachineApp {
     showGameScreen() {
         this.loginScreen.classList.remove('active');
         this.gameScreen.classList.add('active');
-        this.userNameSpan.textContent = `Bienvenido, ${this.currentUser.nombre}`;
+        
+        // Mostrar nombres de los competidores
+        this.competitor1Name.textContent = this.currentCompetitors.competitor1.nombre;
+        this.competitor2Name.textContent = this.currentCompetitors.competitor2.nombre;
+        
         this.spinBtn.disabled = false;
         this.spinBtn.textContent = 'GIRAR';
         
-        // Mostrar botones solo para administradores
-        if (this.adminEmails.includes(this.currentUser.email)) {
+        // Verificar si alguno de los competidores es admin para mostrar botones
+        const isAdmin = this.adminEmails.includes(this.currentCompetitors.competitor1.email) || 
+                       this.adminEmails.includes(this.currentCompetitors.competitor2.email);
+        
+        if (isAdmin) {
             this.exportBtn.style.display = 'inline-block';
             this.clearBtn.style.display = 'inline-block';
         } else {
             this.exportBtn.style.display = 'none';
             this.clearBtn.style.display = 'none';
         }
+        
+        // El botón "Nueva Competencia" siempre visible
+        this.newCompetitionBtn.style.display = 'inline-block';
     }
 
     showLoginScreen() {
@@ -150,8 +232,8 @@ class SlotMachineApp {
         this.loginForm.reset();
     }
 
-    handleLogout() {
-        this.currentUser = null;
+    handleNewCompetition() {
+        this.currentCompetitors = null;
         this.hasSpun = false;
         this.showLoginScreen();
     }
@@ -207,16 +289,11 @@ class SlotMachineApp {
             reel.querySelector('.reel-strip').textContent
         );
         
-        // Guardar jugada
-        this.addGameToStorage(
-            this.currentUser.nombre,
-            this.currentUser.email,
-            results[0],
-            results[1],
-            results[2]
-        );
+        // Guardar jugada con ambos competidores
+        this.addGameToStorage(results[0], results[1], results[2]);
         
-        this.spinBtn.textContent = 'YA JUGASTE';
+        this.spinBtn.textContent = 'YA JUGASTE - NUEVA COMPETENCIA';
+        this.spinBtn.onclick = () => this.handleNewCompetition();
     }
 }
 
