@@ -464,7 +464,7 @@
                         <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña" autocomplete="current-password">
                     </div>
                     
-                    <button class="login-btn" onclick="loginAsAdmin()">
+                    <button class="login-btn" type="button" onclick="loginAsAdmin()">
                         🔐 Iniciar Sesión
                     </button>
                     
@@ -543,11 +543,14 @@
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
 
+            console.log('Intentando login con:', username, password); // Debug
+
             if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
                 showAdminPanel();
                 loadDataFromFirebase();
                 showMessage('¡Bienvenido Administrador!', 'success');
             } else {
+                console.log('Credenciales incorrectas. Esperadas:', ADMIN_CREDENTIALS); // Debug
                 showMessage('Usuario o contraseña incorrectos.', 'error');
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
@@ -1096,4 +1099,4 @@
                             <img src="${pair.image2.url}" class="result-img">
                             <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person2}</p>
                             <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
-                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 
+                            ${winner === 2 ? '<p style="color: #dc770e; font-weight:
