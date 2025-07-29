@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - DEBUG</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #dc770e;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #dc770e;
+        }
+        
+        .login-btn {
+            background: #dc770e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background: #b8630c;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .admin-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <h1>🔐 Login Debug</h1>
+        
+        <div class="form-group">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" placeholder="admin">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" placeholder="admin">
+        </div>
+        
+        <button class="login-btn" id="loginBtn">LOGIN TEST</button>
+        
+        <div class="debug-info">
+            <strong>Debug Info:</strong><br>
+            <div id="debugLog">Esperando interacción...</div>
+        </div>
+    </div>
+    
+    <div class="admin-panel hidden" id="adminPanel">
+        <h1>🎉 ¡LOGIN EXITOSO!</h1>
+        <p>Las credenciales fueron correctas.</p>
+        <button onclick="logout()" style="background: #dc770e; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer;">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        // ========== INICIO DEL SCRIPT ==========
+        console.log('🚀 Script iniciando...');
+        
+        // Variables globales simples
+        const ADMIN_USER = 'admin';
+        const ADMIN_PASS = 'admin';
+        
+        // Función de debug
+        function addDebugLog(message) {
+            console.log('DEBUG:', message);
+            const debugLog = document.getElementById('debugLog');
+            if (debugLog) {
+                debugLog.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
+            }
+        }
+        
+        // Función de login simplificada
+        function doLogin() {
+            addDebugLog('Función doLogin ejecutándose...');
+            
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            
+            if (!usernameInput || !passwordInput) {
+                addDebugLog('ERROR: No se encontraron los campos de input');
+                return;
+            }
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            addDebugLog(`Usuario ingresado: "${username}"`);
+            addDebugLog(`Contraseña ingresada: "${password}"`);
+            addDebugLog(`Credenciales esperadas: "${ADMIN_USER}" / "${ADMIN_PASS}"`);
+            
+            if (username === ADMIN_USER && password === ADMIN_PASS) {
+                addDebugLog('✅ CREDENCIALES CORRECTAS!');
+                showAdminPanel();
+            } else {
+                addDebugLog('❌ CREDENCIALES INCORRECTAS');
+                showError('Usuario o contraseña incorrectos');
+            }
+        }
+        
+        // Mostrar panel de admin
+        function showAdminPanel() {
+            addDebugLog('Mostrando panel de administración...');
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+        }
+        
+        // Cerrar sesión
+        function logout() {
+            addDebugLog('Cerrando sesión...');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+        
+        // Mostrar error
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.getElementById('loginContainer').appendChild(errorDiv);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
+        }
+        
+        // Configurar eventos cuando cargue la página
+        document.addEventListener('DOMContentLoaded', function() {
+            addDebugLog('DOM cargado completamente');
+            
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                addDebugLog('Botón de login encontrado');
+                
+                loginBtn.addEventListener('click', function() {
+                    addDebugLog('Click en botón detectado!');
+                    doLogin();
+                });
+                
+                addDebugLog('Evento click configurado');
+            } else {
+                addDebugLog('ERROR: No se encontró el botón de login');
+            }
+            
+            // Configurar Enter
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addDebugLog('Enter presionado');
+                    doLogin();
+                }
+            });
+            
+            addDebugLog('Configuración completada');
+        });
+        
+        addDebugLog('Script cargado completamente');
+        console.log('✅ Script completamente cargado');
+        
+        // ========== FIN DEL SCRIPT ==========
+    </script>
+</body>
+</html>
