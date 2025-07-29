@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Votación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, push, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCngMkzuGbaWci8cQ4JLFsacBYGn8MUwb0",
+            authDomain: "votacion-imagenes-cfcd6.firebaseapp.com",
+            databaseURL: "https://votacion-imagenes-cfcd6-default-rtdb.firebaseio.com",
+            projectId: "votacion-imagenes-cfcd6",
+            storageBucket: "votacion-imagenes-cfcd6.firebasestorage.app",
+            messagingSenderId: "907624811038",
+            appId: "1:907624811038:web:9af58c7b5981534fb07c0f"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        window.database = getDatabase(app);
+        window.storage = getStorage(app);
+        window.firebaseRefs = { ref, set, get, push, onValue, storageRef, uploadBytes, getDownloadURL };
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Dosis', sans-serif;
+            background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
+            min-height: 100vh;
+            color: #000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: #000;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: clamp(2em, 5vw, 2.5em);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
+            font-weight: 700;
+        }
+
+        /* Login Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #dc770e;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Dosis', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #dc770e;
+            box-shadow: 0 0 0 3px rgba(220, 119, 14, 0.1);
+        }
+
+        .login-btn {
+            background: #dc770e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .login-btn:hover {
+            background: #b8630c;
+            transform: translateY(-2px);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            color: #dc770e;
+        }
+
+        /* Admin Panel Styles */
+        .admin-panel {
+            display: none;
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.9);
+            padding: 15px 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .logout-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            margin-left: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #cc3333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #dc770e;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: #dc770e;
+        }
+
+        .nav-btn:hover {
+            background: #dc770e;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: #dc770e;
+            color: white;
+        }
+
+        .section {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Upload Section */
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #dc770e;
+            background: #fffbf0;
+        }
+
+        .upload-area.dragover {
+            border-color: #fbd21d;
+            background: #fffef0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #dc770e;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #b8630c;
+            transform: translateY(-2px);
+        }
+
+        .image-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .image-pair {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .image-pair:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Results Section */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-images {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .result-img-container {
+            text-align: center;
+            flex: 1;
+        }
+
+        .result-img {
+            width: 100%;
+            max-width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .result-stats {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+            height: 25px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #dc770e, #fbd21d);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #fbd21d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .login-box {
+                padding: 25px;
+                margin: 0 10px;
+            }
+
+            .nav-buttons {
+                gap: 8px;
+            }
+
+            .nav-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 25px;
+            }
+
+            .image-list {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .result-images {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .result-img {
+                max-width: 120px;
+                height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen">
+            <div class="header">
+                <h1>👑 Panel de Administración</h1>
+                <p>Gestión del sistema de votación</p>
+            </div>
+            
+            <div class="login-container">
+                <div class="login-box">
+                    <h2>Acceso de Administrador</h2>
+                    
+                    <div class="form-group">
+                        <label for="username">Usuario:</label>
+                        <input type="text" id="username" class="form-input" placeholder="Ingresa tu usuario" autocomplete="username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Contraseña:</label>
+                        <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña" autocomplete="current-password">
+                    </div>
+                    
+                    <button class="login-btn" onclick="loginAsAdmin()">
+                        🔐 Iniciar Sesión
+                    </button>
+                    
+                    <a href="sistema-votacion-imagenes.html" class="back-link">← Volver a la votación</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="admin-panel" class="admin-panel">
+            <div class="header">
+                <h1>👑 Panel de Administración</h1>
+                <p>Gestiona las imágenes y observa los resultados</p>
+            </div>
+
+            <div class="user-info" id="userInfo">
+                <span style="font-weight: 600;">👤 Administrador</span>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showSection('upload')">📤 Cargar Imágenes</button>
+                <button class="nav-btn" onclick="showSection('results')">📊 Ver Resultados</button>
+            </div>
+
+            <!-- Upload Section -->
+            <div id="upload-section" class="section active">
+                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600;">Cargar Imagen Individual</h2>
+                <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                    Sube UNA imagen que termine en -1 o -2 (ej: maria-1.jpg o maria-2.jpg)<br>
+                    <strong>La app automáticamente emparejará las imágenes cuando ambas estén subidas</strong>
+                </p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📁</div>
+                    <h3>Arrastra una imagen aquí o haz clic para seleccionar</h3>
+                    <p style="margin-top: 10px; color: #666;">Sube solo UNA imagen (-1 o -2)</p>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Seleccionar Imagen
+                    </button>
+                </div>
+
+                <div id="imageList" class="image-list"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600;">📊 Resultados de Votación</h2>
+                <div id="resultsContent" class="results-grid">
+                    <div class="loading">🔄 Cargando resultados...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let imagePairs = [];
+        let votes = {};
+        let personNames = {};
+
+        // Credenciales de administrador
+        const ADMIN_CREDENTIALS = {
+            username: 'admin',
+            password: 'admin'
+        };
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+        });
+
+        // Login como administrador
+        function loginAsAdmin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                showAdminPanel();
+                loadDataFromFirebase();
+                showMessage('¡Bienvenido Administrador!', 'success');
+            } else {
+                showMessage('Usuario o contraseña incorrectos.', 'error');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // Mostrar panel de administración
+        function showAdminPanel() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+        }
+
+        // Cerrar sesión
+        function logout() {
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('admin-panel').style.display = 'none';
+            
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            
+            showMessage('Sesión cerrada correctamente.', 'success');
+        }
+
+        // Cargar datos desde Firebase
+        async function loadDataFromFirebase() {
+            try {
+                const { ref, onValue } = window.firebaseRefs;
+                
+                // Cargar pares de imágenes
+                const pairsRef = ref(window.database, 'imagePairs');
+                onValue(pairsRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        imagePairs = Object.values(data);
+                        displayImagePairs();
+                    }
+                });
+
+                // Cargar imágenes individuales esperando pareja
+                const individualRef = ref(window.database, 'individualImages');
+                onValue(individualRef, (snapshot) => {
+                    const data = snapshot.val();
+                    displayPendingImages(data);
+                });
+
+                // Cargar nombres de personas
+                const namesRef = ref(window.database, 'personNames');
+                onValue(namesRef, (snapshot) => {
+                    const data = snapshot.val();
+                    personNames = data || {};
+                    displayImagePairs();
+                    displayResults();
+                });
+
+                // Cargar votos
+                const votesRef = ref(window.database, 'votes');
+                onValue(votesRef, (snapshot) => {
+                    const data = snapshot.val();
+                    votes = data || {};
+                    displayResults();
+                });
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showMessage('Error conectando con Firebase.', 'error');
+            }
+        }
+
+        // Mostrar imágenes pendientes de emparejamiento
+        function displayPendingImages(pendingData) {
+            if (!pendingData) return;
+            
+            const pendingImages = Object.values(pendingData);
+            if (pendingImages.length === 0) return;
+            
+            // Agrupar por baseName
+            const grouped = {};
+            pendingImages.forEach(img => {
+                if (!grouped[img.baseName]) {
+                    grouped[img.baseName] = [];
+                }
+                grouped[img.baseName].push(img);
+            });
+            
+            // Mostrar mensaje de imágenes esperando pareja
+            const pendingCount = Object.keys(grouped).length;
+            if (pendingCount > 0) {
+                const names = Object.keys(grouped).join(', ');
+                showMessage(`${pendingCount} imagen(es) esperando pareja: ${names}`, 'warning');
+            }
+        }
+
+        // Configurar drag and drop
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                handleFiles(files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                handleFiles(files);
+            });
+        }
+
+        // Manejar archivos seleccionados
+        function handleFiles(files) {
+            // Solo permitir una imagen a la vez
+            if (files.length > 1) {
+                showMessage('Por favor, sube solo UNA imagen a la vez.', 'warning');
+                return;
+            }
+
+            const imageFile = files[0];
+            
+            if (!imageFile || !imageFile.type.startsWith('image/')) {
+                showMessage('Por favor, selecciona un archivo de imagen válido.', 'warning');
+                return;
+            }
+
+            processImageFile(imageFile);
+        }
+
+        // Procesar archivo de imagen individual
+        async function processImageFile(file) {
+            const fileName = file.name;
+            const lastDot = fileName.lastIndexOf('.');
+            const nameWithoutExt = fileName.substring(0, lastDot);
+            
+            // Verificar que termine en -1 o -2
+            if (!nameWithoutExt.endsWith('-1') && !nameWithoutExt.endsWith('-2')) {
+                showMessage('El nombre del archivo debe terminar en -1 o -2 (ej: maria-1.jpg, juan-2.png)', 'error');
+                return;
+            }
+
+            showMessage('Subiendo imagen...', 'warning');
+            
+            try {
+                const { storageRef, uploadBytes, getDownloadURL } = window.firebaseRefs;
+                
+                // Subir imagen a Firebase Storage
+                const imageRef = storageRef(window.storage, `images/${fileName}`);
+                const snapshot = await uploadBytes(imageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                
+                // Determinar el nombre base y el número de imagen
+                const isImage1 = nameWithoutExt.endsWith('-1');
+                const baseName = nameWithoutExt.slice(0, -2);
+                
+                // Guardar imagen individual en Firebase
+                await saveIndividualImageToFirebase(baseName, {
+                    name: fileName,
+                    url: downloadURL
+                }, isImage1 ? 1 : 2);
+                
+                showMessage(`Imagen subida: ${fileName}. Esperando pareja...`, 'success');
+                
+            } catch (error) {
+                console.error('Error subiendo imagen:', error);
+                showMessage('Error subiendo imagen a Firebase.', 'error');
+            }
+        }
+
+        // Guardar imagen individual y verificar si se completa el par
+        async function saveIndividualImageToFirebase(baseName, imageData, imageNumber) {
+            try {
+                const { ref, get, set, push } = window.firebaseRefs;
+                
+                // Verificar si ya existe una imagen del mismo par
+                const imagesRef = ref(window.database, 'individualImages');
+                const snapshot = await get(imagesRef);
+                const existingImages = snapshot.val() || {};
+                
+                // Buscar si existe la pareja
+                let partnerKey = null;
+                let partnerData = null;
+                
+                for (const [key, imageInfo] of Object.entries(existingImages)) {
+                    if (imageInfo.baseName === baseName && imageInfo.imageNumber !== imageNumber) {
+                        partnerKey = key;
+                        partnerData = imageInfo;
+                        break;
+                    }
+                }
+                
+                // Guardar la imagen actual
+                const currentImageRef = push(ref(window.database, 'individualImages'));
+                await set(currentImageRef, {
+                    baseName: baseName,
+                    imageNumber: imageNumber,
+                    imageData: imageData,
+                    timestamp: Date.now()
+                });
+                
+                // Si encontramos la pareja, crear el par completo
+                if (partnerData) {
+                    showMessage(`¡Par completo encontrado para "${baseName}"! Creando competencia...`, 'success');
+                    
+                    // Crear el par completo
+                    const completePair = {
+                        name: baseName,
+                        image1: imageNumber === 1 ? imageData : partnerData.imageData,
+                        image2: imageNumber === 2 ? imageData : partnerData.imageData,
+                        createdAt: Date.now()
+                    };
+                    
+                    // Guardar en imagePairs
+                    const pairRef = push(ref(window.database, 'imagePairs'));
+                    await set(pairRef, {
+                        id: pairRef.key,
+                        ...completePair
+                    });
+                    
+                    // Eliminar las imágenes individuales ya que se creó el par
+                    await set(ref(window.database, `individualImages/${currentImageRef.key}`), null);
+                    if (partnerKey) {
+                        await set(ref(window.database, `individualImages/${partnerKey}`), null);
+                    }
+                    
+                    // Mostrar formulario para asignar nombres
+                    showPersonNamesForm([completePair]);
+                } else {
+                    showMessage(`Imagen "${baseName}-${imageNumber}" guardada. Esperando "${baseName}-${imageNumber === 1 ? '2' : '1'}"...`, 'warning');
+                }
+                
+            } catch (error) {
+                console.error('Error guardando imagen:', error);
+                throw error;
+            }
+        }
+
+        // Guardar pares de imágenes en Firebase
+        async function saveImagePairsToFirebase(newPairs) {
+            try {
+                const { ref, push, set } = window.firebaseRefs;
+                
+                for (const pair of newPairs) {
+                    const pairRef = push(ref(window.database, 'imagePairs'));
+                    await set(pairRef, {
+                        id: pairRef.key,
+                        name: pair.name,
+                        image1: pair.image1,
+                        image2: pair.image2,
+                        createdAt: Date.now()
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error guardando pares:', error);
+                throw error;
+            }
+        }
+
+        // Mostrar formulario para asignar nombres
+        function showPersonNamesForm(newPairs) {
+            const formContainer = document.createElement('div');
+            formContainer.id = 'personNamesForm';
+            formContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                overflow-y: auto;
+            `;
+
+            const formContent = document.createElement('div');
+            formContent.style.cssText = `
+                background: white;
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 600px;
+                max-height: 90vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                margin: 20px;
+            `;
+
+            let formHTML = `
+                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600; color: #dc770e;">
+                    👥 Asignar Nombres a las Personas
+                </h2>
+                <p style="text-align: center; margin-bottom: 30px; color: #666;">
+                    Escribe el nombre de cada persona en las imágenes
+                </p>
+            `;
+
+            newPairs.forEach((pair, index) => {
+                const existingNames = personNames[pair.name] || { person1: '', person2: '' };
+
+                formHTML += `
+                    <div style="border: 2px solid #eee; border-radius: 15px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Par: ${pair.name}</h3>
+                        
+                        <div style="display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
+                            <div style="text-align: center;">
+                                <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
+                                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image1.name}</p>
+                                <input 
+                                    type="text" 
+                                    id="person1_${index}" 
+                                    placeholder="Nombre de la persona"
+                                    value="${existingNames.person1}"
+                                    style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
+                                    required
+                                >
+                            </div>
+                            
+                            <div style="font-size: 24px; color: #dc770e; font-weight: bold;">VS</div>
+                            
+                            <div style="text-align: center;">
+                                <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
+                                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image2.name}</p>
+                                <input 
+                                    type="text" 
+                                    id="person2_${index}" 
+                                    placeholder="Nombre de la persona"
+                                    value="${existingNames.person2}"
+                                    style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            formHTML += `
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
+                    <button onclick="cancelPersonNames()" style="background: #ccc; color: #000; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Dosis', sans-serif;">
+                        ❌ Cancelar
+                    </button>
+                    <button onclick="savePersonNamesFromForm()" style="background: #dc770e; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Dosis', sans-serif;">
+                        ✅ Guardar Nombres
+                    </button>
+                </div>
+            `;
+
+            formContent.innerHTML = formHTML;
+            formContainer.appendChild(formContent);
+            document.body.appendChild(formContainer);
+            
+            setTimeout(() => {
+                const firstInput = document.getElementById('person1_0');
+                if (firstInput) firstInput.focus();
+            }, 100);
+        }
+
+        // Guardar nombres desde el formulario
+        async function savePersonNamesFromForm() {
+            const form = document.getElementById('personNamesForm');
+            const person1Inputs = form.querySelectorAll('[id^="person1_"]');
+            const person2Inputs = form.querySelectorAll('[id^="person2_"]');
+            
+            let allFieldsFilled = true;
+            let savedCount = 0;
+            
+            const namesToSave = {};
+            for (let i = 0; i < person1Inputs.length; i++) {
+                const person1 = person1Inputs[i].value.trim();
+                const person2 = person2Inputs[i].value.trim();
+                
+                if (!person1 || !person2) {
+                    allFieldsFilled = false;
+                    continue;
+                }
+                
+                const pairName = imagePairs[imagePairs.length - person1Inputs.length + i]?.name;
+                if (pairName) {
+                    namesToSave[pairName] = {
+                        person1: person1,
+                        person2: person2
+                    };
+                    savedCount++;
+                }
+            }
+            
+            if (!allFieldsFilled) {
+                showMessage('Por favor, completa todos los nombres antes de continuar.', 'warning');
+                return;
+            }
+            
+            if (savedCount === 0) {
+                showMessage('No se pudieron guardar los nombres. Intenta nuevamente.', 'error');
+                return;
+            }
+            
+            try {
+                const { ref, set } = window.firebaseRefs;
+                for (const [pairName, names] of Object.entries(namesToSave)) {
+                    const nameRef = ref(window.database, `personNames/${pairName}`);
+                    await set(nameRef, names);
+                }
+                
+                const formElement = document.getElementById('personNamesForm');
+                if (formElement) formElement.remove();
+                
+                showMessage(`Se guardaron ${savedCount} pares con nombres correctamente.`, 'success');
+                
+            } catch (error) {
+                console.error('Error guardando nombres:', error);
+                showMessage('Error guardando nombres en Firebase.', 'error');
+            }
+        }
+
+        // Cancelar asignación de nombres
+        function cancelPersonNames() {
+            const formElement = document.getElementById('personNamesForm');
+            if (formElement) formElement.remove();
+        }
+
+        // Mostrar pares de imágenes
+        function displayImagePairs() {
+            const imageList = document.getElementById('imageList');
+            imageList.innerHTML = '';
+
+            imagePairs.forEach((pair, index) => {
+                const pairDiv = document.createElement('div');
+                pairDiv.className = 'image-pair';
+                
+                const names = personNames[pair.name] || { person1: 'Persona 1', person2: 'Persona 2' };
+                
+                pairDiv.innerHTML = `
+                    <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">${pair.name}</h4>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <div style="text-align: center;">
+                            <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                            <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person1}</p>
+                            <p style="font-size: 12px; color: #666;">${pair.image1.name}</p>
+                        </div>
+                        <div style="display: flex; align-items: center; font-size: 20px; font-weight: bold; color: #dc770e;">VS</div>
+                        <div style="text-align: center;">
+                            <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                            <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person2}</p>
+                            <p style="font-size: 12px; color: #666;">${pair.image2.name}</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button onclick="editPersonNames('${pair.name}', ${index})" style="flex: 1; padding: 8px; background: #fbd21d; color: #000; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
+                            ✏️ Editar Nombres
+                        </button>
+                        <button onclick="removePair('${pair.id}')" style="flex: 1; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
+                            🗑️ Eliminar Par
+                        </button>
+                    </div>
+                `;
+                
+                imageList.appendChild(pairDiv);
+            });
+        }
+
+        // Editar nombres de personas
+        function editPersonNames(pairName, index) {
+            const pair = imagePairs.find(p => p.name === pairName);
+            if (pair) showPersonNamesForm([pair]);
+        }
+
+        // Eliminar par de imágenes
+        async function removePair(pairId) {
+            try {
+                const { ref, set } = window.firebaseRefs;
+                
+                const pairRef = ref(window.database, `imagePairs/${pairId}`);
+                await set(pairRef, null);
+                
+                showMessage('Par de imágenes eliminado.', 'success');
+                
+            } catch (error) {
+                console.error('Error eliminando par:', error);
+                showMessage('Error eliminando par de imágenes.', 'error');
+            }
+        }
+
+        // Cambiar sección
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(section + '-section').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (section === 'results') {
+                displayResults();
+            } else if (section === 'upload') {
+                displayImagePairs();
+            }
+        }
+
+        // Mostrar resultados
+        function displayResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (imagePairs.length === 0) {
+                resultsContent.innerHTML = `
+                    <div class="status-message warning">
+                        No hay pares de imágenes para mostrar resultados.
+                    </div>
+                `;
+                return;
+            }
+
+            resultsContent.innerHTML = '';
+
+            imagePairs.forEach(pair => {
+                const pairId = pair.name;
+                const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
+                const totalVotes = pairVotes.image1 + pairVotes.image2;
+                
+                const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
+
+                const winner = pairVotes.image1 > pairVotes.image2 ? 1 : 
+                              pairVotes.image2 > pairVotes.image1 ? 2 : 0;
+
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                
+                resultCard.innerHTML = `
+                    <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${pair.name}</h3>
+                    <div class="result-images">
+                        <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
+                            <img src="${pair.image1.url}" class="result-img">
+                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person1}</p>
+                            <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${pairVotes.image1 || 0} votos</p>
+                            ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
+                        </div>
+                        <div class="result-img-container" style="${winner === 2 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
+                            <img src="${pair.image2.url}" class="result-img">
+                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person2}</p>
+                            <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
+                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 
