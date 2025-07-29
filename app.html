@@ -3,28 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Máquina Tragamonedas - Login</title>
+    <title>Máquina Tragamonedas - Registro de Competidores</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="app-styles.css">
 </head>
 <body>
-    <!-- Pantalla de Login -->
+    <!-- Pantalla de Registro de Competidores -->
     <div id="login-screen" class="screen active">
         <div class="container">
-            <h1>Iniciar Sesión</h1>
+            <h1>Registro de Competidores</h1>
             
             <form id="login-form" class="login-form">
-                <div class="form-group">
-                    <label for="nombre">Nombre:</label>
-                    <input type="text" id="nombre" name="nombre" autocomplete="off" required>
+                <div class="competitors-section">
+                    <h2>👤 Competidor 1</h2>
+                    <div class="form-group">
+                        <label for="nombre1">Nombre:</label>
+                        <input type="text" id="nombre1" name="nombre1" autocomplete="off" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email1">Correo Electrónico:</label>
+                        <input type="email" id="email1" name="email1" autocomplete="off" required>
+                    </div>
+                </div>
+
+                <div class="competitors-section">
+                    <h2>👤 Competidor 2</h2>
+                    <div class="form-group">
+                        <label for="nombre2">Nombre:</label>
+                        <input type="text" id="nombre2" name="nombre2" autocomplete="off" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email2">Correo Electrónico:</label>
+                        <input type="email" id="email2" name="email2" autocomplete="off" required>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="email">Correo Electrónico:</label>
-                    <input type="email" id="email" name="email" autocomplete="off" required>
-                </div>
-                
-                <button type="submit" class="login-button">INGRESAR</button>
+                <button type="submit" class="login-button">REGISTRAR AMBOS COMPETIDORES</button>
             </form>
         </div>
     </div>
@@ -33,6 +49,18 @@
     <div id="game-screen" class="screen">
         <div class="container">
             <h1>¡Gira y Gana!</h1>
+            
+            <!-- Información de los competidores registrados -->
+            <div class="competitors-info">
+                <div class="competitor-card">
+                    <h3>🏁 Competidor 1</h3>
+                    <span id="competitor1-name"></span>
+                </div>
+                <div class="competitor-card">
+                    <h3>🏁 Competidor 2</h3>
+                    <span id="competitor2-name"></span>
+                </div>
+            </div>
             
             <!-- Textos disponibles para los rodillos (ocultos) -->
             <div id="texts-pool" style="display: none;">
@@ -80,11 +108,11 @@
             </div>
             
             <div class="user-info">
-                <span id="user-name"></span>
+                <span id="user-name">Competidores registrados</span>
                 <div>
                     <button id="export-btn" class="export-button">Exportar Excel</button>
                     <button id="clear-btn" class="clear-button">Limpiar Datos</button>
-                    <button id="logout-btn" class="logout-button">Cerrar Sesión</button>
+                    <button id="new-competition-btn" class="new-competition-button">Nueva Competencia</button>
                 </div>
             </div>
         </div>
