@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Votación de Imágenes</title>
+    <title>Votación de Imágenes</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, get, push, onValue, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getDatabase, ref, get, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
         // Configuración de Firebase
         const firebaseConfig = {
@@ -27,7 +27,7 @@
         const app = initializeApp(firebaseConfig);
         window.database = getDatabase(app);
         window.storage = getStorage(app);
-        window.firebaseRefs = { ref, set, get, push, onValue, serverTimestamp, storageRef, uploadBytes, getDownloadURL };
+        window.firebaseRefs = { ref, get, onValue };
     </script>
 
     <style>
@@ -42,14 +42,13 @@
             background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
             min-height: 100vh;
             color: #000;
-            /* Optimizaciones móviles */
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             touch-action: manipulation;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 10px;
         }
@@ -58,318 +57,40 @@
             text-align: center;
             color: #000;
             margin-bottom: 20px;
+            padding: 20px 10px;
         }
 
         .header h1 {
-            font-size: clamp(1.8em, 5vw, 2.5em);
+            font-size: clamp(2em, 6vw, 3em);
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
             font-weight: 700;
         }
 
         .header p {
-            font-size: clamp(14px, 3vw, 16px);
-        }
-
-        .firebase-setup {
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            border: 3px solid #dc770e;
-            font-size: 14px;
-        }
-
-        .firebase-setup h3 {
-            color: #dc770e;
+            font-size: clamp(16px, 4vw, 20px);
             margin-bottom: 10px;
-            font-weight: 600;
-            font-size: 18px;
         }
 
-        .firebase-setup ol {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-
-        .firebase-setup pre {
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 10px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        /* Estilos para el login optimizados para móvil */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 70vh;
-            padding: 10px;
-        }
-
-        .login-box {
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-            max-width: 380px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .login-box h2 {
-            margin-bottom: 25px;
-            font-weight: 600;
-            color: #000;
-            font-size: clamp(20px, 4vw, 24px);
-        }
-
-        .login-option {
-            margin-bottom: 20px;
-        }
-
-        .voter-btn {
-            background: #dc770e;
-            color: white;
-            border: none;
-            padding: 18px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: clamp(16px, 4vw, 18px);
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 15px;
-            min-height: 50px;
-            touch-action: manipulation;
-        }
-
-        .voter-btn:hover, .voter-btn:active {
-            background: #b8630c;
-            transform: translateY(-2px);
-        }
-
-        .admin-section {
-            border-top: 2px solid #eee;
-            padding-top: 20px;
-            margin-top: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 16px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: 'Dosis', sans-serif;
-            transition: border-color 0.3s ease;
-            min-height: 50px;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #dc770e;
-            box-shadow: 0 0 0 3px rgba(220, 119, 14, 0.1);
-        }
-
-        .admin-btn {
-            background: #fbd21d;
-            color: #000;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-            width: 100%;
-            min-height: 50px;
-            touch-action: manipulation;
-        }
-
-        .admin-btn:hover, .admin-btn:active {
-            background: #e6bd0a;
-            transform: translateY(-2px);
-        }
-
-        .user-info {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.95);
-            padding: 8px 15px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-            font-size: 14px;
-            max-width: calc(100vw - 20px);
-        }
-
-        .logout-btn {
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            margin-left: 8px;
-            transition: all 0.3s ease;
-            touch-action: manipulation;
-        }
-
-        .logout-btn:hover, .logout-btn:active {
-            background: #cc3333;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            padding: 0 10px;
-        }
-
-        .nav-btn {
-            padding: 12px 16px;
+        .subtitle {
             background: rgba(255,255,255,0.9);
-            border: 2px solid #dc770e;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: clamp(14px, 3vw, 16px);
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            color: #dc770e;
-            flex: 1;
-            min-width: 140px;
-            max-width: 200px;
-            touch-action: manipulation;
-        }
-
-        .nav-btn:hover:not(:disabled), .nav-btn:active:not(:disabled) {
-            background: #dc770e;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 119, 14, 0.3);
-        }
-
-        .nav-btn.active {
-            background: #dc770e;
-            color: white;
-        }
-
-        .nav-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #ccc;
-            border-color: #ccc;
-            color: #666;
-        }
-
-        .section {
-            display: none;
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        .upload-area {
-            border: 3px dashed #ddd;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            background: #fafafa;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .upload-area:hover {
-            border-color: #dc770e;
-            background: #fffbf0;
-        }
-
-        .upload-area.dragover {
-            border-color: #fbd21d;
-            background: #fffef0;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .upload-btn {
-            background: #dc770e;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        .upload-btn:hover {
-            background: #b8630c;
-            transform: translateY(-2px);
-        }
-
-        .image-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .image-pair {
-            background: white;
-            border-radius: 15px;
             padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .image-pair:hover {
-            transform: translateY(-5px);
+            border-radius: 15px;
+            margin: 0 10px 20px 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #dc770e;
+            font-size: clamp(16px, 4vw, 18px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .voting-container {
-            text-align: center;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
         }
 
         .voting-pair {
@@ -378,18 +99,20 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
         }
 
         .voting-pair h3 {
             margin-bottom: 15px;
             color: #000;
-            font-size: clamp(20px, 5vw, 24px);
+            font-size: clamp(20px, 5vw, 28px);
             font-weight: 600;
         }
 
         .voting-pair p {
             font-size: clamp(14px, 3vw, 16px);
             margin-bottom: 20px;
+            color: #666;
         }
 
         .images-comparison {
@@ -432,22 +155,22 @@
             margin-bottom: 15px;
             font-weight: 600;
             color: #dc770e;
-            font-size: clamp(18px, 4vw, 20px);
+            font-size: clamp(18px, 4vw, 24px);
         }
 
         .vote-btn {
             background: #dc770e;
             color: white;
             border: none;
-            padding: 15px 20px;
+            padding: 18px 25px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: clamp(16px, 3.5vw, 18px);
+            font-size: clamp(16px, 4vw, 20px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
             width: 100%;
-            min-height: 50px;
+            min-height: 60px;
             touch-action: manipulation;
         }
 
@@ -467,23 +190,24 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 25px;
             flex-wrap: wrap;
+            padding: 0 10px;
         }
 
         .nav-control {
             background: #fbd21d;
             color: #000;
             border: none;
-            padding: 12px 20px;
+            padding: 15px 25px;
             border-radius: 25px;
             cursor: pointer;
-            font-size: clamp(14px, 3vw, 16px);
+            font-size: clamp(16px, 4vw, 18px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
-            min-height: 45px;
-            min-width: 100px;
+            min-height: 50px;
+            min-width: 120px;
             touch-action: manipulation;
         }
 
@@ -500,238 +224,66 @@
 
         #pairCounter {
             font-weight: 600;
-            font-size: clamp(16px, 4vw, 18px);
+            font-size: clamp(18px, 5vw, 22px);
             color: #000;
             text-align: center;
-            min-width: 120px;
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        .result-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .result-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .result-card h3 {
-            font-size: clamp(18px, 4vw, 20px);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .result-images {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .result-img-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+            min-width: 140px;
             padding: 10px;
-            border-radius: 10px;
-        }
-
-        .result-img {
-            width: 100%;
-            max-width: 200px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        .result-stats {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
         }
 
         .status-message {
             text-align: center;
             padding: 20px;
-            margin: 15px 0;
-            border-radius: 10px;
+            margin: 15px 10px;
+            border-radius: 15px;
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
-            font-size: clamp(14px, 3vw, 16px);
+            font-size: clamp(16px, 4vw, 18px);
         }
 
         .success {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #c3e6cb;
         }
 
         .warning {
             background: #fff3cd;
             color: #856404;
-            border: 1px solid #fbd21d;
+            border: 2px solid #fbd21d;
         }
 
         .error {
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .progress-bar {
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 15px 0;
-            height: 25px;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #dc770e, #fbd21d);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            font-size: clamp(12px, 3vw, 14px);
+            border: 2px solid #f5c6cb;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             color: #666;
-            font-size: clamp(16px, 4vw, 18px);
+            font-size: clamp(18px, 5vw, 22px);
         }
 
-        /* Optimizaciones específicas para móviles */
-        @media (max-width: 768px) {
-            .container {
-                padding: 5px;
-            }
-            
-            .user-info {
-                position: static;
-                margin: 10px auto;
-                text-align: center;
-                max-width: calc(100vw - 10px);
-                border-radius: 15px;
-            }
-
-            .nav-buttons {
-                gap: 5px;
-                margin-bottom: 15px;
-            }
-
-            .nav-btn {
-                padding: 10px 12px;
-                font-size: 14px;
-                min-width: 100px;
-            }
-
-            .section {
-                padding: 15px;
-                margin: 0 5px;
-            }
-
-            .voting-pair {
-                padding: 15px;
-            }
-
-            .vote-option {
-                padding: 15px;
-                max-width: 100%;
-            }
-
-            .vote-option img {
-                height: 250px;
-                max-width: 100%;
-            }
-
-            .navigation-controls {
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-
-            .nav-control {
-                padding: 10px 15px;
-                min-width: 80px;
-            }
-
-            #pairCounter {
-                width: 100%;
-                order: -1;
-                margin-bottom: 10px;
-            }
-
-            .firebase-setup {
-                margin: 5px;
-                padding: 15px;
-                font-size: 13px;
-            }
-
-            .firebase-setup pre {
-                font-size: 9px;
-                padding: 8px;
-            }
-
-            .login-box {
-                margin: 0 10px;
-                padding: 20px;
-            }
-
-            .results-grid {
-                gap: 15px;
-                padding: 0 10px;
-            }
-
-            .result-card {
-                padding: 15px;
-            }
-
-            .result-images {
-                gap: 10px;
-            }
-
-            .result-img {
-                height: 150px;
-                max-width: 150px;
-            }
+        .admin-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
-        /* Optimizaciones para pantallas muy pequeñas */
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.5em;
-            }
-
-            .vote-option img {
-                height: 200px;
-            }
-
-            .result-img {
-                height: 120px;
-                max-width: 120px;
-            }
-
-            .nav-btn {
-                font-size: 12px;
-                padding: 8px 10px;
-            }
+        .admin-link:hover {
+            background: rgba(0,0,0,0.9);
         }
 
         /* Optimizaciones para tablets */
@@ -745,177 +297,95 @@
             .vote-option {
                 max-width: 300px;
             }
-
-            .results-grid {
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            }
-
-            .result-images {
-                flex-direction: row;
-                justify-content: center;
-            }
         }
 
         /* Optimizaciones para pantallas grandes */
         @media (min-width: 1025px) {
             .images-comparison {
                 flex-direction: row;
+                justify-content: center;
             }
 
-            .results-grid {
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            .vote-option {
+                max-width: 320px;
+            }
+        }
+
+        /* Optimizaciones para móviles pequeños */
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
             }
 
-            .result-images {
-                flex-direction: row;
+            .header {
+                padding: 15px 5px;
+            }
+
+            .voting-container {
+                margin: 0 5px;
+                padding: 15px;
+            }
+
+            .voting-pair {
+                padding: 15px;
+            }
+
+            .vote-option img {
+                height: 220px;
+            }
+
+            .navigation-controls {
+                gap: 10px;
+            }
+
+            .nav-control {
+                padding: 12px 20px;
+                min-width: 100px;
+            }
+
+            #pairCounter {
+                width: 100%;
+                order: -1;
+                margin-bottom: 15px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Instrucciones de configuración Firebase -->
-        <div id="firebase-setup" class="firebase-setup">
-            <h3>🔥 Configuración Firebase Requerida</h3>
-            <p><strong>Para que la app funcione globalmente, necesitas:</strong></p>
-            <ol style="margin: 15px 0; padding-left: 30px;">
-                <li>Crear un proyecto en <a href="https://console.firebase.google.com" target="_blank" style="color: #dc770e;">Firebase Console</a></li>
-                <li>Activar <strong>Realtime Database</strong> y <strong>Storage</strong></li>
-                <li>Copiar tu configuración y reemplazar en el código:</li>
-            </ol>
-            <pre style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-size: 12px; overflow-x: auto;">
-const firebaseConfig = {
-    apiKey: "tu-api-key-aqui",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
-    projectId: "tu-proyecto-id",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "tu-app-id"
-};
-            </pre>
-            <p style="margin-top: 15px;"><strong>Una vez configurado, recarga la página.</strong></p>
+        <div class="header">
+            <h1>🗳️ Votación</h1>
+            <p>¡Vota por tu imagen favorita!</p>
         </div>
 
-        <!-- Pantalla de Login -->
-        <div id="login-screen">
-            <div class="header">
-                <h1>🗳️ Sistema de Votación de Imágenes</h1>
-                <p>Selecciona tu tipo de acceso</p>
+        <div class="subtitle">
+            👥 Cada dispositivo puede votar una vez por competencia
+        </div>
+
+        <div class="voting-container">
+            <div id="votingContent">
+                <div class="loading">🔄 Cargando imágenes disponibles...</div>
             </div>
             
-            <div class="login-container">
-                <div class="login-box">
-                    <h2>Bienvenido</h2>
-                    
-                    <div class="login-option">
-                        <button class="voter-btn" onclick="loginAsVoter()">
-                            👥 Entrar como Votante
-                        </button>
-                        <p style="font-size: 14px; color: #666; margin-top: 5px;">
-                            Solo podrás votar por las imágenes
-                        </p>
-                    </div>
-                    
-                    <div class="admin-section">
-                        <h3 style="margin-bottom: 20px; font-weight: 600;">Acceso de Administrador</h3>
-                        
-                        <div class="form-group">
-                            <label for="username">Usuario:</label>
-                            <input type="text" id="username" class="form-input" placeholder="Ingresa tu usuario">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="password">Contraseña:</label>
-                            <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña">
-                        </div>
-                        
-                        <button class="admin-btn" onclick="loginAsAdmin()">
-                            👑 Entrar como Administrador
-                        </button>
-                        
-                        <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                            Podrás subir imágenes y ver resultados
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Aplicación principal -->
-        <div id="main-app" style="display: none;">
-            <div class="header">
-                <h1>🗳️ Sistema de Votación de Imágenes</h1>
-                <p>Sistema global - Los datos se comparten entre todos los usuarios</p>
-            </div>
-
-            <!-- Información del usuario -->
-            <div class="user-info" id="userInfo"></div>
-
-            <div class="nav-buttons">
-                <button class="nav-btn" id="uploadBtn" onclick="showSection('upload')" disabled>📤 Cargar Imágenes</button>
-                <button class="nav-btn active" onclick="showSection('vote')">🗳️ Votar</button>
-                <button class="nav-btn" id="resultsBtn" onclick="showSection('results')" disabled>📊 Resultados</button>
-            </div>
-
-            <!-- Sección de Carga -->
-            <div id="upload-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600;">Cargar Pares de Imágenes</h2>
-                <p style="text-align: center; margin-bottom: 20px; color: #666;">Selecciona imágenes que terminen en -1 y -2 (ej: foto-1.jpg, foto-2.jpg)</p>
-                
-                <div class="upload-area" id="uploadArea">
-                    <div style="font-size: 3em; margin-bottom: 15px;">📁</div>
-                    <h3>Arrastra archivos aquí o haz clic para seleccionar</h3>
-                    <p style="margin-top: 10px; color: #666;">Formatos soportados: JPG, PNG, GIF</p>
-                    <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
-                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                        Seleccionar Imágenes
-                    </button>
-                </div>
-
-                <div id="imageList" class="image-list"></div>
-            </div>
-
-            <!-- Sección de Votación -->
-            <div id="vote-section" class="section active">
-                <div class="voting-container">
-                    <div id="votingContent">
-                        <div class="loading">🔄 Cargando imágenes disponibles...</div>
-                    </div>
-                    <div class="navigation-controls">
-                        <button class="nav-control" id="prevBtn" onclick="previousPair()">⬅️ Anterior</button>
-                        <span id="pairCounter" style="font-weight: 600; font-size: 18px;">Cargando...</span>
-                        <button class="nav-control" id="nextBtn" onclick="nextPair()">Siguiente ➡️</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sección de Resultados -->
-            <div id="results-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600;">📊 Resultados de Votación</h2>
-                <div id="resultsContent" class="results-grid">
-                    <div class="loading">🔄 Cargando resultados...</div>
-                </div>
+            <div class="navigation-controls">
+                <button class="nav-control" id="prevBtn" onclick="previousPair()">⬅️ Anterior</button>
+                <div id="pairCounter">Cargando...</div>
+                <button class="nav-control" id="nextBtn" onclick="nextPair()">Siguiente ➡️</button>
             </div>
         </div>
     </div>
+
+    <!-- Link discreto para admin -->
+    <a href="admin.html" class="admin-link">👑 Admin</a>
 
     <script>
         // Variables globales
         let imagePairs = [];
         let currentPairIndex = 0;
         let votes = {};
-        let currentUser = null;
-        let userRole = null;
         let personNames = {};
         let userIP = null;
         let votedPairs = new Set();
-
-        // Credenciales de administrador
-        const ADMIN_CREDENTIALS = {
-            username: 'admin',
-            password: 'votacion2024'
-        };
 
         // Generar IP único para el usuario
         function generateUserIP() {
@@ -930,13 +400,11 @@ const firebaseConfig = {
         document.addEventListener('DOMContentLoaded', function() {
             userIP = localStorage.getItem('userIP') || generateUserIP();
             
-            // Verificar si Firebase está configurado
             setTimeout(() => {
                 if (window.database) {
-                    document.getElementById('firebase-setup').style.display = 'none';
                     loadDataFromFirebase();
                 } else {
-                    showMessage('Firebase no está configurado. Sigue las instrucciones arriba.', 'error');
+                    showMessage('Error conectando con Firebase. Intenta recargar la página.', 'error');
                 }
             }, 1000);
         });
@@ -944,7 +412,7 @@ const firebaseConfig = {
         // Cargar datos desde Firebase
         async function loadDataFromFirebase() {
             try {
-                const { ref, get, onValue } = window.firebaseRefs;
+                const { ref, onValue } = window.firebaseRefs;
                 
                 // Cargar pares de imágenes
                 const pairsRef = ref(window.database, 'imagePairs');
@@ -952,8 +420,14 @@ const firebaseConfig = {
                     const data = snapshot.val();
                     if (data) {
                         imagePairs = Object.values(data);
-                        if (userRole === 'admin') displayImagePairs();
-                        if (userRole === 'voter' || !userRole) setupVoting();
+                        setupVoting();
+                    } else {
+                        document.getElementById('votingContent').innerHTML = `
+                            <div class="status-message warning">
+                                No hay imágenes disponibles para votar.<br>
+                                El administrador debe subir imágenes primero.
+                            </div>
+                        `;
                     }
                 });
 
@@ -962,14 +436,16 @@ const firebaseConfig = {
                 onValue(namesRef, (snapshot) => {
                     const data = snapshot.val();
                     personNames = data || {};
+                    if (imagePairs.length > 0) {
+                        displayVotingPair();
+                    }
                 });
 
-                // Cargar votos
+                // Cargar votos (para mostrar si ya votó)
                 const votesRef = ref(window.database, 'votes');
                 onValue(votesRef, (snapshot) => {
                     const data = snapshot.val();
                     votes = data || {};
-                    if (userRole === 'admin') displayResults();
                 });
 
                 // Cargar IPs que han votado
@@ -977,7 +453,7 @@ const firebaseConfig = {
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                showMessage('Error conectando con Firebase. Verifica la configuración.', 'error');
+                showMessage('Error conectando con la base de datos.', 'error');
             }
         }
 
@@ -991,485 +467,12 @@ const firebaseConfig = {
                 if (snapshot.exists()) {
                     const votedPairsList = snapshot.val();
                     votedPairs = new Set(votedPairsList || []);
+                    if (imagePairs.length > 0) {
+                        displayVotingPair();
+                    }
                 }
             } catch (error) {
                 console.error('Error cargando IPs votantes:', error);
-            }
-        }
-
-        // Login como votante
-        function loginAsVoter() {
-            currentUser = 'Votante';
-            userRole = 'voter';
-            showMainApp();
-            setupVoterInterface();
-            showMessage('¡Bienvenido! Puedes votar por tus imágenes favoritas.', 'success');
-        }
-
-        // Login como administrador
-        function loginAsAdmin() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                currentUser = 'Administrador';
-                userRole = 'admin';
-                showMainApp();
-                setupAdminInterface();
-                showMessage('¡Bienvenido Administrador! Tienes acceso completo al sistema.', 'success');
-            } else {
-                showMessage('Usuario o contraseña incorrectos.', 'error');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-            }
-        }
-
-        // Mostrar aplicación principal
-        function showMainApp() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-app').style.display = 'block';
-            updateUserInfo();
-            setupDragAndDrop();
-            loadDataFromFirebase();
-        }
-
-        // Configurar interfaz para votante
-        function setupVoterInterface() {
-            document.getElementById('uploadBtn').disabled = true;
-            document.getElementById('resultsBtn').disabled = true;
-            showSection('vote');
-        }
-
-        // Configurar interfaz para administrador
-        function setupAdminInterface() {
-            document.getElementById('uploadBtn').disabled = false;
-            document.getElementById('resultsBtn').disabled = false;
-            
-            const voteBtn = document.querySelector('button[onclick="showSection(\'vote\')"]');
-            if (voteBtn) {
-                voteBtn.disabled = true;
-                voteBtn.style.opacity = '0.5';
-                voteBtn.title = 'Los administradores no pueden votar';
-            }
-            
-            showSection('upload');
-        }
-
-        // Actualizar información del usuario
-        function updateUserInfo() {
-            const userInfo = document.getElementById('userInfo');
-            userInfo.innerHTML = `
-                <span style="font-weight: 600;">👤 ${currentUser}</span>
-                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
-            `;
-        }
-
-        // Cerrar sesión
-        function logout() {
-            currentUser = null;
-            userRole = null;
-            document.getElementById('login-screen').style.display = 'block';
-            document.getElementById('main-app').style.display = 'none';
-            
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            
-            showMessage('Sesión cerrada correctamente.', 'success');
-        }
-
-        // Configurar drag and drop
-        function setupDragAndDrop() {
-            if (userRole !== 'admin') return;
-
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                const files = Array.from(e.dataTransfer.files);
-                handleFiles(files);
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                const files = Array.from(e.target.files);
-                handleFiles(files);
-            });
-        }
-
-        // Manejar archivos seleccionados
-        function handleFiles(files) {
-            if (userRole !== 'admin') {
-                showMessage('No tienes permisos para subir archivos.', 'error');
-                return;
-            }
-
-            const imageFiles = files.filter(file => file.type.startsWith('image/'));
-            
-            if (imageFiles.length === 0) {
-                showMessage('No se encontraron archivos de imagen válidos.', 'warning');
-                return;
-            }
-
-            processImageFiles(imageFiles);
-        }
-
-        // Procesar archivos de imagen
-        async function processImageFiles(files) {
-            const pairs = {};
-            
-            // Mostrar mensaje de carga
-            showMessage('Subiendo imágenes a Firebase...', 'warning');
-            
-            try {
-                const { storageRef, uploadBytes, getDownloadURL } = window.firebaseRefs;
-                
-                // Procesar archivos y subirlos a Firebase Storage
-                for (const file of files) {
-                    const fileName = file.name;
-                    const lastDot = fileName.lastIndexOf('.');
-                    const nameWithoutExt = fileName.substring(0, lastDot);
-                    
-                    if (nameWithoutExt.endsWith('-1')) {
-                        const baseName = nameWithoutExt.slice(0, -2);
-                        if (!pairs[baseName]) pairs[baseName] = {};
-                        
-                        // Subir imagen a Firebase Storage
-                        const imageRef = storageRef(window.storage, `images/${fileName}`);
-                        const snapshot = await uploadBytes(imageRef, file);
-                        const downloadURL = await getDownloadURL(snapshot.ref);
-                        
-                        pairs[baseName].image1 = {
-                            name: fileName,
-                            url: downloadURL
-                        };
-                        pairs[baseName].name = baseName;
-                    } else if (nameWithoutExt.endsWith('-2')) {
-                        const baseName = nameWithoutExt.slice(0, -2);
-                        if (!pairs[baseName]) pairs[baseName] = {};
-                        
-                        // Subir imagen a Firebase Storage
-                        const imageRef = storageRef(window.storage, `images/${fileName}`);
-                        const snapshot = await uploadBytes(imageRef, file);
-                        const downloadURL = await getDownloadURL(snapshot.ref);
-                        
-                        pairs[baseName].image2 = {
-                            name: fileName,
-                            url: downloadURL
-                        };
-                        pairs[baseName].name = baseName;
-                    }
-                }
-
-                // Filtrar pares completos
-                const completePairs = Object.values(pairs).filter(pair => pair.image1 && pair.image2);
-                
-                if (completePairs.length === 0) {
-                    showMessage('No se encontraron pares completos de imágenes (terminadas en -1 y -2).', 'warning');
-                    return;
-                }
-
-                // Guardar pares en Firebase
-                await saveImagePairsToFirebase(completePairs);
-                
-                // Mostrar formulario para asignar nombres
-                showPersonNamesForm(completePairs);
-
-            } catch (error) {
-                console.error('Error subiendo imágenes:', error);
-                showMessage('Error subiendo imágenes a Firebase.', 'error');
-            }
-        }
-
-        // Guardar pares de imágenes en Firebase
-        async function saveImagePairsToFirebase(newPairs) {
-            try {
-                const { ref, set, push } = window.firebaseRefs;
-                
-                for (const pair of newPairs) {
-                    const pairRef = push(ref(window.database, 'imagePairs'));
-                    await set(pairRef, {
-                        id: pairRef.key,
-                        name: pair.name,
-                        image1: pair.image1,
-                        image2: pair.image2,
-                        createdAt: Date.now()
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Error guardando pares:', error);
-                throw error;
-            }
-        }
-
-        // Mostrar formulario para asignar nombres a personas
-        function showPersonNamesForm(newPairs) {
-            const formContainer = document.createElement('div');
-            formContainer.id = 'personNamesForm';
-            formContainer.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-            `;
-
-            const formContent = document.createElement('div');
-            formContent.style.cssText = `
-                background: white;
-                border-radius: 20px;
-                padding: 30px;
-                max-width: 600px;
-                max-height: 80vh;
-                overflow-y: auto;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            `;
-
-            let formHTML = `
-                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600; color: #dc770e;">
-                    👥 Asignar Nombres a las Personas
-                </h2>
-                <p style="text-align: center; margin-bottom: 30px; color: #666;">
-                    Escribe el nombre de cada persona en las imágenes
-                </p>
-            `;
-
-            newPairs.forEach((pair, index) => {
-                const existingNames = personNames[pair.name] || { person1: '', person2: '' };
-
-                formHTML += `
-                    <div style="border: 2px solid #eee; border-radius: 15px; padding: 20px; margin-bottom: 20px;">
-                        <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Par: ${pair.name}</h3>
-                        
-                        <div style="display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
-                            <div style="text-align: center;">
-                                <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
-                                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image1.name}</p>
-                                <input 
-                                    type="text" 
-                                    id="person1_${index}" 
-                                    placeholder="Nombre de la persona"
-                                    value="${existingNames.person1}"
-                                    style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
-                                    required
-                                >
-                            </div>
-                            
-                            <div style="font-size: 24px; color: #dc770e; font-weight: bold;">VS</div>
-                            
-                            <div style="text-align: center;">
-                                <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
-                                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image2.name}</p>
-                                <input 
-                                    type="text" 
-                                    id="person2_${index}" 
-                                    placeholder="Nombre de la persona"
-                                    value="${existingNames.person2}"
-                                    style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
-                                    required
-                                >
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            formHTML += `
-                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
-                    <button onclick="cancelPersonNames()" style="background: #ccc; color: #000; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Dosis', sans-serif;">
-                        ❌ Cancelar
-                    </button>
-                    <button onclick="savePersonNamesFromForm()" style="background: #dc770e; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Dosis', sans-serif;">
-                        ✅ Guardar Nombres
-                    </button>
-                </div>
-            `;
-
-            formContent.innerHTML = formHTML;
-            formContainer.appendChild(formContent);
-            document.body.appendChild(formContainer);
-            
-            setTimeout(() => {
-                const firstInput = document.getElementById('person1_0');
-                if (firstInput) firstInput.focus();
-            }, 100);
-        }
-
-        // Nueva función para guardar nombres desde el formulario
-        async function savePersonNamesFromForm() {
-            const form = document.getElementById('personNamesForm');
-            const person1Inputs = form.querySelectorAll('[id^="person1_"]');
-            const person2Inputs = form.querySelectorAll('[id^="person2_"]');
-            
-            let allFieldsFilled = true;
-            let savedCount = 0;
-            
-            // Recopilar nombres
-            const namesToSave = {};
-            for (let i = 0; i < person1Inputs.length; i++) {
-                const person1 = person1Inputs[i].value.trim();
-                const person2 = person2Inputs[i].value.trim();
-                
-                if (!person1 || !person2) {
-                    allFieldsFilled = false;
-                    continue;
-                }
-                
-                const pairName = imagePairs[imagePairs.length - person1Inputs.length + i]?.name;
-                if (pairName) {
-                    namesToSave[pairName] = {
-                        person1: person1,
-                        person2: person2
-                    };
-                    savedCount++;
-                }
-            }
-            
-            if (!allFieldsFilled) {
-                showMessage('Por favor, completa todos los nombres antes de continuar.', 'warning');
-                return;
-            }
-            
-            if (savedCount === 0) {
-                showMessage('No se pudieron guardar los nombres. Intenta nuevamente.', 'error');
-                return;
-            }
-            
-            try {
-                // Guardar nombres en Firebase
-                const { ref, set } = window.firebaseRefs;
-                for (const [pairName, names] of Object.entries(namesToSave)) {
-                    const nameRef = ref(window.database, `personNames/${pairName}`);
-                    await set(nameRef, names);
-                }
-                
-                // Cerrar formulario
-                const formElement = document.getElementById('personNamesForm');
-                if (formElement) formElement.remove();
-                
-                showMessage(`Se guardaron ${savedCount} pares con nombres correctamente.`, 'success');
-                
-            } catch (error) {
-                console.error('Error guardando nombres:', error);
-                showMessage('Error guardando nombres en Firebase.', 'error');
-            }
-        }
-
-        // Cancelar asignación de nombres
-        function cancelPersonNames() {
-            const formElement = document.getElementById('personNamesForm');
-            if (formElement) formElement.remove();
-        }
-
-        // Mostrar pares de imágenes
-        function displayImagePairs() {
-            const imageList = document.getElementById('imageList');
-            imageList.innerHTML = '';
-
-            imagePairs.forEach((pair, index) => {
-                const pairDiv = document.createElement('div');
-                pairDiv.className = 'image-pair';
-                
-                const names = personNames[pair.name] || { person1: 'Persona 1', person2: 'Persona 2' };
-                
-                pairDiv.innerHTML = `
-                    <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">${pair.name}</h4>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <div style="text-align: center;">
-                            <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
-                            <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person1}</p>
-                            <p style="font-size: 12px; color: #666;">${pair.image1.name}</p>
-                        </div>
-                        <div style="display: flex; align-items: center; font-size: 20px; font-weight: bold; color: #dc770e;">VS</div>
-                        <div style="text-align: center;">
-                            <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
-                            <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person2}</p>
-                            <p style="font-size: 12px; color: #666;">${pair.image2.name}</p>
-                        </div>
-                    </div>
-                    ${userRole === 'admin' ? `
-                        <div style="display: flex; gap: 10px; margin-top: 15px;">
-                            <button onclick="editPersonNames('${pair.name}', ${index})" style="flex: 1; padding: 8px; background: #fbd21d; color: #000; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
-                                ✏️ Editar Nombres
-                            </button>
-                            <button onclick="removePair('${pair.id}')" style="flex: 1; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
-                                🗑️ Eliminar Par
-                            </button>
-                        </div>
-                    ` : ''}
-                `;
-                
-                imageList.appendChild(pairDiv);
-            });
-        }
-
-        // Editar nombres de personas
-        function editPersonNames(pairName, index) {
-            const pair = imagePairs.find(p => p.name === pairName);
-            if (pair) showPersonNamesForm([pair]);
-        }
-
-        // Eliminar par de imágenes
-        async function removePair(pairId) {
-            if (userRole !== 'admin') {
-                showMessage('No tienes permisos para eliminar imágenes.', 'error');
-                return;
-            }
-
-            try {
-                const { ref, set } = window.firebaseRefs;
-                
-                // Eliminar par de Firebase
-                const pairRef = ref(window.database, `imagePairs/${pairId}`);
-                await set(pairRef, null);
-                
-                showMessage('Par de imágenes eliminado.', 'success');
-                
-            } catch (error) {
-                console.error('Error eliminando par:', error);
-                showMessage('Error eliminando par de imágenes.', 'error');
-            }
-        }
-
-        // Cambiar sección
-        function showSection(section) {
-            if ((section === 'upload' || section === 'results') && userRole !== 'admin') {
-                showMessage('No tienes permisos para acceder a esta sección.', 'error');
-                return;
-            }
-            
-            if (section === 'vote' && userRole === 'admin') {
-                showMessage('Los administradores no pueden votar.', 'error');
-                return;
-            }
-
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(section + '-section').classList.add('active');
-            event.target.classList.add('active');
-            
-            if (section === 'vote') {
-                setupVoting();
-            } else if (section === 'results') {
-                displayResults();
-            } else if (section === 'upload') {
-                displayImagePairs();
             }
         }
 
@@ -1478,7 +481,8 @@ const firebaseConfig = {
             if (imagePairs.length === 0) {
                 document.getElementById('votingContent').innerHTML = `
                     <div class="status-message warning">
-                        No hay pares de imágenes cargados. ${userRole === 'admin' ? 'Ve a la sección "Cargar Imágenes" primero.' : 'Espera a que el administrador cargue imágenes.'}
+                        No hay imágenes disponibles para votar.<br>
+                        Espera a que el administrador cargue imágenes.
                     </div>
                 `;
                 return;
@@ -1494,7 +498,8 @@ const firebaseConfig = {
             if (currentPairIndex >= imagePairs.length) {
                 document.getElementById('votingContent').innerHTML = `
                     <div class="status-message success">
-                        ¡Has revisado todos los pares de imágenes!
+                        ¡Has revisado todos los pares de imágenes!<br>
+                        Gracias por participar en la votación.
                     </div>
                 `;
                 return;
@@ -1509,21 +514,21 @@ const firebaseConfig = {
             document.getElementById('votingContent').innerHTML = `
                 <div class="voting-pair">
                     <h3>¿Cuál imagen prefieres?</h3>
-                    <p style="text-align: center; color: #666; margin-bottom: 20px;">Competencia: ${pair.name}</p>
-                    ${hasVoted ? '<div class="status-message success">Ya has votado en este par</div>' : ''}
+                    <p>Competencia: <strong>${pair.name}</strong></p>
+                    ${hasVoted ? '<div class="status-message success">✅ Ya has votado en esta competencia</div>' : ''}
                     <div class="images-comparison">
                         <div class="vote-option">
                             <img src="${pair.image1.url}" alt="${names.person1}">
-                            <h4 style="margin-bottom: 10px; font-weight: 600; color: #dc770e;">${names.person1}</h4>
+                            <h4>${names.person1}</h4>
                             <button class="vote-btn" onclick="vote('${pairId}', 1)" ${hasVoted ? 'disabled' : ''}>
-                                ${hasVoted ? '✓ Votado' : '👍 Votar por ' + names.person1}
+                                ${hasVoted ? '✅ Ya votaste' : '👍 Votar por ' + names.person1}
                             </button>
                         </div>
                         <div class="vote-option">
                             <img src="${pair.image2.url}" alt="${names.person2}">
-                            <h4 style="margin-bottom: 10px; font-weight: 600; color: #dc770e;">${names.person2}</h4>
+                            <h4>${names.person2}</h4>
                             <button class="vote-btn" onclick="vote('${pairId}', 2)" ${hasVoted ? 'disabled' : ''}>
-                                ${hasVoted ? '✓ Votado' : '👍 Votar por ' + names.person2}
+                                ${hasVoted ? '✅ Ya votaste' : '👍 Votar por ' + names.person2}
                             </button>
                         </div>
                     </div>
@@ -1534,17 +539,20 @@ const firebaseConfig = {
         // Votar por una imagen
         async function vote(pairId, imageNumber) {
             if (votedPairs.has(pairId)) {
-                showMessage('Ya has votado en este par de imágenes.', 'warning');
+                showMessage('Ya has votado en esta competencia.', 'warning');
                 return;
             }
 
             try {
-                const { ref, get, set } = window.firebaseRefs;
+                const { ref, get } = window.firebaseRefs;
                 
                 // Actualizar votos en Firebase
                 const voteRef = ref(window.database, `votes/${pairId}/image${imageNumber}`);
                 const snapshot = await get(voteRef);
                 const currentVotes = snapshot.val() || 0;
+                
+                // Usar set desde el módulo importado
+                const { set } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
                 await set(voteRef, currentVotes + 1);
                 
                 // Registrar IP como votante
@@ -1554,11 +562,16 @@ const firebaseConfig = {
                 
                 // Actualizar display
                 displayVotingPair();
-                showMessage('¡Voto registrado correctamente!', 'success');
+                
+                const personName = personNames[pairId] ? 
+                    (imageNumber === 1 ? personNames[pairId].person1 : personNames[pairId].person2) : 
+                    `Opción ${imageNumber}`;
+                    
+                showMessage(`¡Voto registrado por ${personName}!`, 'success');
                 
             } catch (error) {
                 console.error('Error votando:', error);
-                showMessage('Error registrando voto.', 'error');
+                showMessage('Error registrando voto. Intenta nuevamente.', 'error');
             }
         }
 
@@ -1582,107 +595,31 @@ const firebaseConfig = {
         // Actualizar contador de pares
         function updatePairCounter() {
             const counter = document.getElementById('pairCounter');
-            counter.textContent = `Par ${currentPairIndex + 1} de ${imagePairs.length}`;
+            counter.textContent = `${currentPairIndex + 1} de ${imagePairs.length}`;
             
             document.getElementById('prevBtn').disabled = currentPairIndex === 0;
             document.getElementById('nextBtn').disabled = currentPairIndex === imagePairs.length - 1;
-        }
-
-        // Mostrar resultados
-        function displayResults() {
-            const resultsContent = document.getElementById('resultsContent');
-            
-            if (imagePairs.length === 0) {
-                resultsContent.innerHTML = `
-                    <div class="status-message warning">
-                        No hay pares de imágenes para mostrar resultados.
-                    </div>
-                `;
-                return;
-            }
-
-            resultsContent.innerHTML = '';
-
-            imagePairs.forEach(pair => {
-                const pairId = pair.name;
-                const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
-                const totalVotes = pairVotes.image1 + pairVotes.image2;
-                
-                const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
-
-                const winner = pairVotes.image1 > pairVotes.image2 ? 1 : 
-                              pairVotes.image2 > pairVotes.image1 ? 2 : 0;
-
-                const resultCard = document.createElement('div');
-                resultCard.className = 'result-card';
-                
-                resultCard.innerHTML = `
-                    <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${pair.name}</h3>
-                    <div class="result-images">
-                        <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0;' : ''}">
-                            <img src="${pair.image1.url}" class="result-img">
-                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: clamp(16px, 4vw, 18px);">${names.person1}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: clamp(18px, 5vw, 20px); margin-top: 5px;">${pairVotes.image1 || 0} votos</p>
-                            ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px; font-size: clamp(14px, 4vw, 16px);">🏆 GANADOR/A</p>' : ''}
-                        </div>
-                        <div class="result-img-container" style="${winner === 2 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0;' : ''}">
-                            <img src="${pair.image2.url}" class="result-img">
-                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: clamp(16px, 4vw, 18px);">${names.person2}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: clamp(18px, 5vw, 20px); margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
-                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px; font-size: clamp(14px, 4vw, 16px);">🏆 GANADOR/A</p>' : ''}
-                        </div>
-                    </div>
-                    <div class="result-stats">
-                        <p style="text-align: center; font-weight: 600; margin-bottom: 10px; font-size: clamp(16px, 4vw, 18px);">Total de votos: ${totalVotes}</p>
-                        ${totalVotes > 0 ? `
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${totalVotes > 0 ? (pairVotes.image1 / totalVotes * 100) : 50}%">
-                                    ${names.person1}: ${totalVotes > 0 ? Math.round(pairVotes.image1 / totalVotes * 100) : 0}%
-                                </div>
-                            </div>
-                            <p style="text-align: center; font-size: clamp(14px, 3vw, 16px); color: #666; margin-top: 5px;">
-                                ${names.person2}: ${totalVotes > 0 ? Math.round(pairVotes.image2 / totalVotes * 100) : 0}%
-                            </p>
-                        ` : '<p style="text-align: center; color: #666; font-size: clamp(14px, 3vw, 16px);">Sin votos aún</p>'}
-                        ${winner === 0 && totalVotes > 0 ? '<p style="text-align: center; color: #fbd21d; font-weight: 600; margin-top: 10px; font-size: clamp(16px, 4vw, 18px);">🤝 EMPATE</p>' : ''}
-                    </div>
-                `;
-                
-                resultsContent.appendChild(resultCard);
-            });
         }
 
         // Mostrar mensajes de estado
         function showMessage(message, type) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `status-message ${type}`;
-            messageDiv.textContent = message;
+            messageDiv.innerHTML = message;
             
             messageDiv.style.position = 'fixed';
             messageDiv.style.top = '20px';
             messageDiv.style.left = '50%';
             messageDiv.style.transform = 'translateX(-50%)';
             messageDiv.style.zIndex = '1000';
-            messageDiv.style.maxWidth = '500px';
+            messageDiv.style.maxWidth = '90vw';
             
             document.body.appendChild(messageDiv);
             
             setTimeout(() => {
                 messageDiv.remove();
-            }, 3000);
+            }, 4000);
         }
-
-        // Permitir login con Enter
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value.trim();
-                
-                if (username || password) {
-                    loginAsAdmin();
-                }
-            }
-        });
     </script>
 </body>
 </html>
