@@ -464,7 +464,7 @@
                         <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña" autocomplete="current-password">
                     </div>
                     
-                    <button class="login-btn" type="button" onclick="loginAsAdmin()">
+                    <button class="login-btn" type="button" id="loginButton">
                         🔐 Iniciar Sesión
                     </button>
                     
@@ -536,6 +536,7 @@
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
             setupDragAndDrop();
+            setupLoginEvents();
         });
 
         // Login como administrador
