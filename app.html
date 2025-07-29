@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máquina Tragamonedas - Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="app-styles.css">
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="screen active">
+        <div class="container">
+            <h1>Iniciar Sesión</h1>
+            
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" autocomplete="off" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Correo Electrónico:</label>
+                    <input type="email" id="email" name="email" autocomplete="off" required>
+                </div>
+                
+                <button type="submit" class="login-button">INGRESAR</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pantalla de Juego -->
+    <div id="game-screen" class="screen">
+        <div class="container">
+            <h1>¡Gira y Gana!</h1>
+            
+            <!-- Textos disponibles para los rodillos (ocultos) -->
+            <div id="texts-pool" style="display: none;">
+                <div class="text-section" data-reel="1">
+                    <span>AGUACATE</span>
+                    <span>SOMBRERO</span>
+                    <span>TACO</span>
+                    <span>PARAGUAS</span>
+                    <span>HELADO</span>
+                    <span>BOTELLA DE TEQUILA</span>
+                </div>
+                <div class="text-section" data-reel="2">
+                    <span>BIOLUMINISCENTE</span>
+                    <span>ESPONJOSO</span>
+                    <span>METÁLICO</span>
+                    <span>ORGÁNICO</span>
+                    <span>SUAVE</span>
+                    <span>ELEGANTE</span>
+                </div>
+                <div class="text-section" data-reel="3">
+                    <span>PREDICE EL FUTURO</span>
+                    <span>VUELA</span>
+                    <span>CAMBIA DE FORMA</span>
+                    <span>LANZALLAMAS</span>
+                    <span>HACE BAILAR A QUIEN LO TOCA</span>
+                    <span>PUEDE CURAR CORAZONES ROTOS</span>
+                </div>
+            </div>
+
+            <!-- Máquina tragamonedas -->
+            <div class="slot-machine">
+                <div class="reels-container">
+                    <div class="reel" id="reel1">
+                        <div class="reel-strip">PREMIO</div>
+                    </div>
+                    <div class="reel" id="reel2">
+                        <div class="reel-strip">GRANDE</div>
+                    </div>
+                    <div class="reel" id="reel3">
+                        <div class="reel-strip">HOY</div>
+                    </div>
+                </div>
+                
+                <button id="spin-btn" class="spin-button">GIRAR</button>
+            </div>
+            
+            <div class="user-info">
+                <span id="user-name"></span>
+                <div>
+                    <button id="export-btn" class="export-button">Exportar Excel</button>
+                    <button id="clear-btn" class="clear-button">Limpiar Datos</button>
+                    <button id="logout-btn" class="logout-button">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app-script.js"></script>
+</body>
+</html>
