@@ -338,6 +338,7 @@
             <div class="nav-buttons">
                 <button class="nav-btn active" onclick="showSection('upload')">📤 Cargar Imágenes</button>
                 <button class="nav-btn" onclick="showSection('results')">📊 Ver Resultados</button>
+                <button class="nav-btn" onclick="showSection('top8')">🏆 TOP 8</button>
             </div>
 
             <!-- Upload Section -->
@@ -367,6 +368,19 @@
                 <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600;">📊 Resultados de Votación</h2>
                 <div id="resultsContent" class="results-grid">
                     <div class="loading">🔄 Cargando resultados...</div>
+                </div>
+            </div>
+
+            <!-- TOP 8 Section -->
+            <div id="top8-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
+                    🏆 TOP 8 MÁS VOTADOS
+                </h2>
+                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
+                    Las 8 personas con mayor número de votos
+                </p>
+                <div id="top8Content">
+                    <div class="loading">🔄 Cargando TOP 8...</div>
                 </div>
             </div>
         </div>
@@ -933,19 +947,6 @@
 
             resultsContent.innerHTML = '';
 
-            // Crear sección de resultados por parejas
-            const pairsSection = document.createElement('div');
-            pairsSection.innerHTML = `
-                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600; color: #dc770e;">
-                    📊 Resultados por Competencias
-                </h2>
-            `;
-            resultsContent.appendChild(pairsSection);
-
-            const pairsGrid = document.createElement('div');
-            pairsGrid.className = 'results-grid';
-            pairsGrid.style.marginBottom = '50px';
-
             imagePairs.forEach(pair => {
                 const pairId = pair.name;
                 const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
@@ -992,17 +993,23 @@
                     </div>
                 `;
                 
-                pairsGrid.appendChild(resultCard);
+                resultsContent.appendChild(resultCard);
             });
-
-            resultsContent.appendChild(pairsGrid);
-
-            // Crear sección TOP 8
-            displayTop8Results(resultsContent);
         }
 
         // Mostrar TOP 8 más votados
-        function displayTop8Results(container) {
+        function displayTop8() {
+            const top8Content = document.getElementById('top8Content');
+            
+            if (imagePairs.length === 0) {
+                top8Content.innerHTML = `
+                    <div class="status-message warning">
+                        No hay pares de imágenes para mostrar el TOP 8.
+                    </div>
+                `;
+                return;
+            }
+
             // Recopilar todas las personas con sus votos
             const allPersons = [];
             
@@ -1031,25 +1038,8 @@
             // Ordenar por votos (mayor a menor) y tomar los primeros 8
             const top8 = allPersons.sort((a, b) => b.votes - a.votes).slice(0, 8);
             
-            // Crear sección TOP 8
-            const top8Section = document.createElement('div');
-            top8Section.style.cssText = `
-                background: rgba(255,255,255,0.95);
-                border-radius: 20px;
-                padding: 30px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                backdrop-filter: blur(10px);
-                margin-top: 30px;
-            `;
-            
-            top8Section.innerHTML = `
-                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
-                    🏆 TOP 8 MÁS VOTADOS
-                </h2>
-                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
-                    Las 8 personas con mayor número de votos
-                </p>
-            `;
+            // Limpiar contenido
+            top8Content.innerHTML = '';
             
             // Grid para TOP 8
             const top8Grid = document.createElement('div');
@@ -1148,7 +1138,7 @@
                 top8Grid.appendChild(personCard);
             });
             
-            top8Section.appendChild(top8Grid);
+            top8Content.appendChild(top8Grid);
             
             // Agregar estadísticas adicionales
             if (top8.length > 0) {
@@ -1187,10 +1177,8 @@
                     </div>
                 `;
                 
-                top8Section.appendChild(statsDiv);
+                top8Content.appendChild(statsDiv);
             }
-            
-            container.appendChild(top8Section);
         }
 
         // Exponer funciones globalmente para los eventos onclick
