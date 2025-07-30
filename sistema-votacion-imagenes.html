@@ -56,7 +56,7 @@
         .header {
             text-align: center;
             color: #000;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             padding: 20px 10px;
         }
 
@@ -65,23 +65,6 @@
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
             font-weight: 700;
-        }
-
-        .header p {
-            font-size: clamp(16px, 4vw, 20px);
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            background: rgba(255,255,255,0.9);
-            padding: 15px;
-            border-radius: 15px;
-            margin: 0 10px 20px 10px;
-            text-align: center;
-            font-weight: 600;
-            color: #dc770e;
-            font-size: clamp(16px, 4vw, 18px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .voting-container {
@@ -268,24 +251,6 @@
             font-size: clamp(18px, 5vw, 22px);
         }
 
-        .admin-link {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .admin-link:hover {
-            background: rgba(0,0,0,0.9);
-        }
-
         /* Optimizaciones para tablets */
         @media (min-width: 769px) and (max-width: 1024px) {
             .images-comparison {
@@ -354,12 +319,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🗳️ Votación</h1>
-            <p>¡Vota por tu imagen favorita!</p>
-        </div>
-
-        <div class="subtitle">
-            👥 Cada dispositivo puede votar una vez por competencia
+            <h1>¡Vota por tu imagen favorita!</h1>
         </div>
 
         <div class="voting-container">
@@ -374,9 +334,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Link discreto para admin -->
-    <a href="admin.html" class="admin-link">👑 Admin</a>
 
     <script>
         // Variables globales
@@ -419,7 +376,13 @@
                 onValue(pairsRef, (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        imagePairs = Object.values(data);
+                        // Convertir a array y ordenar por timestamp descendente (más nuevo primero)
+                        const pairsArray = Object.values(data);
+                        imagePairs = pairsArray.sort((a, b) => {
+                            const timestampA = a.timestamp || 0;
+                            const timestampB = b.timestamp || 0;
+                            return timestampB - timestampA; // Orden descendente
+                        });
                         setupVoting();
                     } else {
                         document.getElementById('votingContent').innerHTML = `
