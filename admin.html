@@ -1,9 +1,4 @@
-<!-- Link para regresar a votación -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <a href="sistema-votacion-imagenes.html" style="background: #3498db; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
-                    ← Ir a Votación
-                </a>
-            </div><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -29,10 +24,17 @@
         };
 
         // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        window.database = getDatabase(app);
-        window.storage = getStorage(app);
-        window.firebaseRefs = { ref, set, get, push, onValue, storageRef, uploadBytes, getDownloadURL };
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.database = getDatabase(app);
+            window.storage = getStorage(app);
+            window.firebaseRefs = { ref, set, get, push, onValue, storageRef, uploadBytes, getDownloadURL };
+            window.firebaseInitialized = true;
+            console.log('Firebase inicializado correctamente');
+        } catch (error) {
+            console.error('Error inicializando Firebase:', error);
+            window.firebaseInitialized = false;
+        }
     </script>
 
     <style>
@@ -285,11 +287,6 @@
                 padding: 10px;
             }
 
-            .login-box {
-                padding: 25px;
-                margin: 0 10px;
-            }
-
             .nav-buttons {
                 gap: 8px;
             }
@@ -330,7 +327,7 @@
     </style>
 </head>
 <body>
-
+    <div class="container">
         <!-- Admin Panel -->
         <div id="admin-panel" class="admin-panel">
             <div class="header">
@@ -361,6 +358,7 @@
                     </button>
                 </div>
 
+                <div id="messageContainer"></div>
                 <div id="imageList" class="image-list"></div>
             </div>
 
@@ -380,56 +378,50 @@
         let votes = {};
         let personNames = {};
 
-        // Credenciales de administrador
-        const ADMIN_CREDENTIALS = {
-            username: 'admin',
-            password: 'admin'
-        };
-
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
-            setupDragAndDrop();
-            setupLoginEvents();
+            console.log('DOM cargado, inicializando...');
+            
+            // Esperar a que Firebase se inicialice
+            setTimeout(() => {
+                if (window.firebaseInitialized) {
+                    console.log('Firebase listo, configurando eventos...');
+                    setupDragAndDrop();
+                    loadDataFromFirebase();
+                } else {
+                    showMessage('Error: No se pudo conectar con Firebase. Verifica tu conexión.', 'error');
+                }
+            }, 1000);
         });
 
-        // Login como administrador
-        function loginAsAdmin() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-
-            console.log('Intentando login con:', username, password); // Debug
-
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                showAdminPanel();
-                loadDataFromFirebase();
-                showMessage('¡Bienvenido Administrador!', 'success');
-            } else {
-                console.log('Credenciales incorrectas. Esperadas:', ADMIN_CREDENTIALS); // Debug
-                showMessage('Usuario o contraseña incorrectos.', 'error');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
+        // Mostrar mensajes
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status-message ${type}`;
+            messageDiv.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            
+            // Auto-hide después de 5 segundos para mensajes de éxito
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => messageDiv.remove(), 300);
+                }, 5000);
             }
-        }
-
-        // Mostrar panel de administración
-        function showAdminPanel() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('admin-panel').style.display = 'block';
-        }
-
-        // Cerrar sesión
-        function logout() {
-            document.getElementById('login-screen').style.display = 'block';
-            document.getElementById('admin-panel').style.display = 'none';
-            
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            
-            showMessage('Sesión cerrada correctamente.', 'success');
         }
 
         // Cargar datos desde Firebase
         async function loadDataFromFirebase() {
+            if (!window.firebaseInitialized) {
+                showMessage('Firebase no está inicializado', 'error');
+                return;
+            }
+
             try {
                 const { ref, onValue } = window.firebaseRefs;
                 
@@ -440,6 +432,7 @@
                     if (data) {
                         imagePairs = Object.values(data);
                         displayImagePairs();
+                        console.log('Pares de imágenes cargados:', imagePairs.length);
                     }
                 });
 
@@ -469,7 +462,7 @@
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                showMessage('Error conectando con Firebase.', 'error');
+                showMessage('Error conectando con Firebase: ' + error.message, 'error');
             }
         }
 
@@ -502,6 +495,11 @@
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
 
+            if (!uploadArea || !fileInput) {
+                console.error('Elementos de upload no encontrados');
+                return;
+            }
+
             uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 uploadArea.classList.add('dragover');
@@ -521,11 +519,17 @@
             fileInput.addEventListener('change', (e) => {
                 const files = Array.from(e.target.files);
                 handleFiles(files);
+                // Limpiar input para permitir seleccionar el mismo archivo otra vez
+                e.target.value = '';
             });
+
+            console.log('Drag and drop configurado correctamente');
         }
 
         // Manejar archivos seleccionados
         function handleFiles(files) {
+            console.log('Archivos seleccionados:', files);
+            
             // Solo permitir una imagen a la vez
             if (files.length > 1) {
                 showMessage('Por favor, sube solo UNA imagen a la vez.', 'warning');
@@ -539,6 +543,7 @@
                 return;
             }
 
+            console.log('Procesando archivo:', imageFile.name);
             processImageFile(imageFile);
         }
 
@@ -547,6 +552,8 @@
             const fileName = file.name;
             const lastDot = fileName.lastIndexOf('.');
             const nameWithoutExt = fileName.substring(0, lastDot);
+            
+            console.log('Procesando:', fileName, 'sin extensión:', nameWithoutExt);
             
             // Verificar que termine en -1 o -2
             if (!nameWithoutExt.endsWith('-1') && !nameWithoutExt.endsWith('-2')) {
@@ -559,10 +566,19 @@
             try {
                 const { storageRef, uploadBytes, getDownloadURL } = window.firebaseRefs;
                 
+                // Crear referencia única para evitar conflictos
+                const timestamp = Date.now();
+                const uniqueFileName = `${timestamp}_${fileName}`;
+                
                 // Subir imagen a Firebase Storage
-                const imageRef = storageRef(window.storage, `images/${fileName}`);
+                const imageRef = storageRef(window.storage, `images/${uniqueFileName}`);
+                console.log('Subiendo a:', `images/${uniqueFileName}`);
+                
                 const snapshot = await uploadBytes(imageRef, file);
+                console.log('Imagen subida, obteniendo URL...');
+                
                 const downloadURL = await getDownloadURL(snapshot.ref);
+                console.log('URL obtenida:', downloadURL);
                 
                 // Determinar el nombre base y el número de imagen
                 const isImage1 = nameWithoutExt.endsWith('-1');
@@ -571,6 +587,8 @@
                 // Guardar imagen individual en Firebase
                 await saveIndividualImageToFirebase(baseName, {
                     name: fileName,
+                    originalName: fileName,
+                    uniqueName: uniqueFileName,
                     url: downloadURL
                 }, isImage1 ? 1 : 2);
                 
@@ -578,7 +596,7 @@
                 
             } catch (error) {
                 console.error('Error subiendo imagen:', error);
-                showMessage('Error subiendo imagen a Firebase.', 'error');
+                showMessage('Error subiendo imagen: ' + error.message, 'error');
             }
         }
 
@@ -586,6 +604,8 @@
         async function saveIndividualImageToFirebase(baseName, imageData, imageNumber) {
             try {
                 const { ref, get, set, push } = window.firebaseRefs;
+                
+                console.log('Guardando imagen individual:', baseName, imageNumber);
                 
                 // Verificar si ya existe una imagen del mismo par
                 const imagesRef = ref(window.database, 'individualImages');
@@ -603,6 +623,8 @@
                         break;
                     }
                 }
+                
+                console.log('Pareja encontrada:', partnerData ? 'Sí' : 'No');
                 
                 // Guardar la imagen actual
                 const currentImageRef = push(ref(window.database, 'individualImages'));
@@ -646,28 +668,6 @@
                 
             } catch (error) {
                 console.error('Error guardando imagen:', error);
-                throw error;
-            }
-        }
-
-        // Guardar pares de imágenes en Firebase
-        async function saveImagePairsToFirebase(newPairs) {
-            try {
-                const { ref, push, set } = window.firebaseRefs;
-                
-                for (const pair of newPairs) {
-                    const pairRef = push(ref(window.database, 'imagePairs'));
-                    await set(pairRef, {
-                        id: pairRef.key,
-                        name: pair.name,
-                        image1: pair.image1,
-                        image2: pair.image2,
-                        createdAt: Date.now()
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Error guardando pares:', error);
                 throw error;
             }
         }
@@ -838,6 +838,8 @@
         // Mostrar pares de imágenes
         function displayImagePairs() {
             const imageList = document.getElementById('imageList');
+            if (!imageList) return;
+            
             imageList.innerHTML = '';
 
             imagePairs.forEach((pair, index) => {
@@ -883,6 +885,10 @@
 
         // Eliminar par de imágenes
         async function removePair(pairId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este par de imágenes?')) {
+                return;
+            }
+            
             try {
                 const { ref, set } = window.firebaseRefs;
                 
@@ -953,4 +959,36 @@
                             <img src="${pair.image2.url}" class="result-img">
                             <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person2}</p>
                             <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
-                            ${winner === 2 ? '<p style="color: #dc770e; font-weight:
+                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
+                        </div>
+                    </div>
+                    <div class="result-stats">
+                        <p style="text-align: center; margin-bottom: 10px; font-weight: 600;">Total de votos: ${totalVotes}</p>
+                        ${totalVotes > 0 ? `
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${totalVotes > 0 ? (pairVotes.image1 / totalVotes * 100) : 50}%">
+                                    ${totalVotes > 0 ? Math.round(pairVotes.image1 / totalVotes * 100) : 0}%
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${totalVotes > 0 ? (pairVotes.image2 / totalVotes * 100) : 50}%">
+                                    ${totalVotes > 0 ? Math.round(pairVotes.image2 / totalVotes * 100) : 0}%
+                                </div>
+                            </div>
+                        ` : '<p style="text-align: center; color: #666;">Sin votos aún</p>'}
+                    </div>
+                `;
+                
+                resultsContent.appendChild(resultCard);
+            });
+        }
+
+        // Exponer funciones globalmente para los eventos onclick
+        window.showSection = showSection;
+        window.editPersonNames = editPersonNames;
+        window.removePair = removePair;
+        window.savePersonNamesFromForm = savePersonNamesFromForm;
+        window.cancelPersonNames = cancelPersonNames;
+    </script>
+</body>
+</html>
