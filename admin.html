@@ -929,6 +929,8 @@
                 displayResults();
             } else if (section === 'upload') {
                 displayImagePairs();
+            } else if (section === 'top8') {
+                displayTop8();
             }
         }
 
@@ -999,7 +1001,17 @@
 
         // Mostrar TOP 8 más votados
         function displayTop8() {
+            console.log('Iniciando displayTop8...');
             const top8Content = document.getElementById('top8Content');
+            
+            if (!top8Content) {
+                console.error('Contenedor top8Content no encontrado');
+                return;
+            }
+            
+            console.log('imagePairs:', imagePairs.length);
+            console.log('votes:', Object.keys(votes).length);
+            console.log('personNames:', Object.keys(personNames).length);
             
             if (imagePairs.length === 0) {
                 top8Content.innerHTML = `
@@ -1010,174 +1022,230 @@
                 return;
             }
 
-            // Recopilar todas las personas con sus votos
-            const allPersons = [];
-            
-            imagePairs.forEach(pair => {
-                const pairId = pair.name;
-                const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
-                const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
-                
-                // Agregar persona 1
-                allPersons.push({
-                    name: names.person1,
-                    image: pair.image1.url,
-                    votes: pairVotes.image1 || 0,
-                    pairName: pair.name
-                });
-                
-                // Agregar persona 2
-                allPersons.push({
-                    name: names.person2,
-                    image: pair.image2.url,
-                    votes: pairVotes.image2 || 0,
-                    pairName: pair.name
-                });
-            });
-            
-            // Ordenar por votos (mayor a menor) y tomar los primeros 8
-            const top8 = allPersons.sort((a, b) => b.votes - a.votes).slice(0, 8);
-            
-            // Limpiar contenido
-            top8Content.innerHTML = '';
-            
-            // Grid para TOP 8
-            const top8Grid = document.createElement('div');
-            top8Grid.style.cssText = `
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 25px;
-                max-width: 1000px;
-                margin: 0 auto;
+            // Mostrar loading mientras se procesa
+            top8Content.innerHTML = `
+                <div class="loading">🔄 Procesando TOP 8...</div>
             `;
-            
-            top8.forEach((person, index) => {
-                const positionColors = {
-                    0: '#FFD700', // Oro
-                    1: '#C0C0C0', // Plata  
-                    2: '#CD7F32', // Bronce
-                };
+
+            try {
+                // Recopilar todas las personas con sus votos
+                const allPersons = [];
                 
-                const borderColor = positionColors[index] || '#dc770e';
-                const position = index + 1;
+                console.log('Procesando pares de imágenes...');
+                imagePairs.forEach((pair, index) => {
+                    console.log(`Procesando par ${index + 1}: ${pair.name}`);
+                    
+                    const pairId = pair.name;
+                    const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
+                    const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
+                    
+                    console.log(`  - Votos: ${pairVotes.image1} vs ${pairVotes.image2}`);
+                    console.log(`  - Nombres: ${names.person1} vs ${names.person2}`);
+                    
+                    // Verificar que las imágenes existan
+                    if (pair.image1 && pair.image1.url && pair.image2 && pair.image2.url) {
+                        // Agregar persona 1
+                        allPersons.push({
+                            name: names.person1,
+                            image: pair.image1.url,
+                            votes: pairVotes.image1 || 0,
+                            pairName: pair.name
+                        });
+                        
+                        // Agregar persona 2
+                        allPersons.push({
+                            name: names.person2,
+                            image: pair.image2.url,
+                            votes: pairVotes.image2 || 0,
+                            pairName: pair.name
+                        });
+                    } else {
+                        console.warn(`Par ${pair.name} no tiene imágenes válidas`);
+                    }
+                });
                 
-                const personCard = document.createElement('div');
-                personCard.style.cssText = `
-                    background: white;
-                    border-radius: 20px;
-                    padding: 20px;
-                    text-align: center;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-                    border: 4px solid ${borderColor};
-                    transition: transform 0.3s ease;
-                    position: relative;
+                console.log(`Total de personas encontradas: ${allPersons.length}`);
+                
+                if (allPersons.length === 0) {
+                    top8Content.innerHTML = `
+                        <div class="status-message warning">
+                            No se encontraron personas con datos válidos para el TOP 8.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Ordenar por votos (mayor a menor) y tomar los primeros 8
+                console.log('Ordenando por votos...');
+                const top8 = allPersons.sort((a, b) => {
+                    const votesA = parseInt(a.votes) || 0;
+                    const votesB = parseInt(b.votes) || 0;
+                    return votesB - votesA;
+                }).slice(0, 8);
+                
+                console.log('TOP 8 calculado:', top8.map(p => `${p.name}: ${p.votes} votos`));
+                
+                // Limpiar contenido
+                top8Content.innerHTML = '';
+                
+                // Grid para TOP 8
+                const top8Grid = document.createElement('div');
+                top8Grid.style.cssText = `
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 25px;
+                    max-width: 1000px;
+                    margin: 0 auto;
                 `;
                 
-                personCard.addEventListener('mouseenter', () => {
-                    personCard.style.transform = 'translateY(-10px) scale(1.02)';
+                console.log('Creando tarjetas del TOP 8...');
+                top8.forEach((person, index) => {
+                    console.log(`Creando tarjeta para ${person.name} (posición ${index + 1})`);
+                    
+                    const positionColors = {
+                        0: '#FFD700', // Oro
+                        1: '#C0C0C0', // Plata  
+                        2: '#CD7F32', // Bronce
+                    };
+                    
+                    const borderColor = positionColors[index] || '#dc770e';
+                    const position = index + 1;
+                    
+                    const personCard = document.createElement('div');
+                    personCard.style.cssText = `
+                        background: white;
+                        border-radius: 20px;
+                        padding: 20px;
+                        text-align: center;
+                        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                        border: 4px solid ${borderColor};
+                        transition: transform 0.3s ease;
+                        position: relative;
+                    `;
+                    
+                    // Agregar efectos hover de manera segura
+                    try {
+                        personCard.addEventListener('mouseenter', () => {
+                            personCard.style.transform = 'translateY(-10px) scale(1.02)';
+                        });
+                        
+                        personCard.addEventListener('mouseleave', () => {
+                            personCard.style.transform = 'translateY(0) scale(1)';
+                        });
+                    } catch (e) {
+                        console.warn('Error agregando event listeners:', e);
+                    }
+                    
+                    // Agregar corona para los primeros 3 lugares
+                    let crownEmoji = '';
+                    if (index === 0) crownEmoji = '👑';
+                    else if (index === 1) crownEmoji = '🥈';
+                    else if (index === 2) crownEmoji = '🥉';
+                    
+                    personCard.innerHTML = `
+                        <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: ${borderColor}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                            ${position}
+                        </div>
+                        
+                        ${crownEmoji ? `<div style="font-size: 2.5em; margin-bottom: 10px;">${crownEmoji}</div>` : ''}
+                        
+                        <img src="${person.image}" style="
+                            width: 120px;
+                            height: 120px;
+                            object-fit: cover;
+                            border-radius: 50%;
+                            margin-bottom: 15px;
+                            border: 3px solid ${borderColor};
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        " onerror="this.style.display='none'">
+                        
+                        <h3 style="
+                            font-weight: 700;
+                            color: #333;
+                            margin-bottom: 10px;
+                            font-size: 18px;
+                            min-height: 50px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">${person.name || 'Sin nombre'}</h3>
+                        
+                        <div style="
+                            background: linear-gradient(135deg, #dc770e, #fbd21d);
+                            color: white;
+                            padding: 12px;
+                            border-radius: 15px;
+                            font-weight: 700;
+                            font-size: 20px;
+                            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                            margin-bottom: 10px;
+                        ">
+                            🗳️ ${person.votes} votos
+                        </div>
+                        
+                        <p style="
+                            color: #666;
+                            font-size: 14px;
+                            font-style: italic;
+                        ">Competencia: ${person.pairName || 'N/A'}</p>
+                    `;
+                    
+                    top8Grid.appendChild(personCard);
                 });
                 
-                personCard.addEventListener('mouseleave', () => {
-                    personCard.style.transform = 'translateY(0) scale(1)';
-                });
+                top8Content.appendChild(top8Grid);
                 
-                // Agregar corona para los primeros 3 lugares
-                let crownEmoji = '';
-                if (index === 0) crownEmoji = '👑';
-                else if (index === 1) crownEmoji = '🥈';
-                else if (index === 2) crownEmoji = '🥉';
-                
-                personCard.innerHTML = `
-                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: ${borderColor}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                        ${position}
-                    </div>
-                    
-                    ${crownEmoji ? `<div style="font-size: 2.5em; margin-bottom: 10px;">${crownEmoji}</div>` : ''}
-                    
-                    <img src="${person.image}" style="
-                        width: 120px;
-                        height: 120px;
-                        object-fit: cover;
-                        border-radius: 50%;
-                        margin-bottom: 15px;
-                        border: 3px solid ${borderColor};
-                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                    ">
-                    
-                    <h3 style="
-                        font-weight: 700;
-                        color: #333;
-                        margin-bottom: 10px;
-                        font-size: 18px;
-                        min-height: 50px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    ">${person.name}</h3>
-                    
-                    <div style="
-                        background: linear-gradient(135deg, #dc770e, #fbd21d);
-                        color: white;
-                        padding: 12px;
+                // Agregar estadísticas adicionales
+                console.log('Agregando estadísticas...');
+                if (top8.length > 0) {
+                    const statsDiv = document.createElement('div');
+                    statsDiv.style.cssText = `
+                        margin-top: 40px;
+                        padding: 25px;
+                        background: #f8f9fa;
                         border-radius: 15px;
-                        font-weight: 700;
-                        font-size: 20px;
-                        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                        margin-bottom: 10px;
-                    ">
-                        🗳️ ${person.votes} votos
-                    </div>
+                        text-align: center;
+                    `;
                     
-                    <p style="
-                        color: #666;
-                        font-size: 14px;
-                        font-style: italic;
-                    ">Competencia: ${person.pairName}</p>
-                `;
+                    const totalVotesTop8 = top8.reduce((sum, person) => sum + (parseInt(person.votes) || 0), 0);
+                    const maxVotes = parseInt(top8[0]?.votes) || 0;
+                    const minVotes = parseInt(top8[top8.length - 1]?.votes) || 0;
+                    const avgVotes = top8.length > 0 ? Math.round(totalVotesTop8 / top8.length) : 0;
+                    
+                    statsDiv.innerHTML = `
+                        <h3 style="color: #dc770e; margin-bottom: 20px; font-weight: 600;">📈 Estadísticas del TOP 8</h3>
+                        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${totalVotesTop8}</div>
+                                <div style="color: #666;">Total de votos</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${maxVotes}</div>
+                                <div style="color: #666;">Máximo de votos</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${minVotes}</div>
+                                <div style="color: #666;">Mínimo de votos</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${avgVotes}</div>
+                                <div style="color: #666;">Promedio de votos</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    top8Content.appendChild(statsDiv);
+                }
                 
-                top8Grid.appendChild(personCard);
-            });
-            
-            top8Content.appendChild(top8Grid);
-            
-            // Agregar estadísticas adicionales
-            if (top8.length > 0) {
-                const statsDiv = document.createElement('div');
-                statsDiv.style.cssText = `
-                    margin-top: 40px;
-                    padding: 25px;
-                    background: #f8f9fa;
-                    border-radius: 15px;
-                    text-align: center;
-                `;
+                console.log('TOP 8 creado exitosamente');
                 
-                const totalVotesTop8 = top8.reduce((sum, person) => sum + person.votes, 0);
-                const maxVotes = top8[0]?.votes || 0;
-                const minVotes = top8[top8.length - 1]?.votes || 0;
-                
-                statsDiv.innerHTML = `
-                    <h3 style="color: #dc770e; margin-bottom: 20px; font-weight: 600;">📈 Estadísticas del TOP 8</h3>
-                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${totalVotesTop8}</div>
-                            <div style="color: #666;">Total de votos</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${maxVotes}</div>
-                            <div style="color: #666;">Máximo de votos</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${minVotes}</div>
-                            <div style="color: #666;">Mínimo de votos</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${Math.round(totalVotesTop8 / top8.length)}</div>
-                            <div style="color: #666;">Promedio de votos</div>
-                        </div>
+            } catch (error) {
+                console.error('Error en displayTop8:', error);
+                top8Content.innerHTML = `
+                    <div class="status-message error">
+                        Error cargando el TOP 8: ${error.message}
                     </div>
                 `;
-                
-                top8Content.appendChild(statsDiv);
             }
         }
 
