@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Votación</title>
+    <title>Votación de Imágenes</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, get, push, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getDatabase, ref, get, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
         // Configuración de Firebase
         const firebaseConfig = {
@@ -24,17 +24,10 @@
         };
 
         // Inicializar Firebase
-        try {
-            const app = initializeApp(firebaseConfig);
-            window.database = getDatabase(app);
-            window.storage = getStorage(app);
-            window.firebaseRefs = { ref, set, get, push, onValue, storageRef, uploadBytes, getDownloadURL };
-            window.firebaseInitialized = true;
-            console.log('Firebase inicializado correctamente');
-        } catch (error) {
-            console.error('Error inicializando Firebase:', error);
-            window.firebaseInitialized = false;
-        }
+        const app = initializeApp(firebaseConfig);
+        window.database = getDatabase(app);
+        window.storage = getStorage(app);
+        window.firebaseRefs = { ref, get, onValue };
     </script>
 
     <style>
@@ -49,420 +42,295 @@
             background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
             min-height: 100vh;
             color: #000;
-            margin: 0;
-            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
         }
 
         .header {
             text-align: center;
             color: #000;
             margin-bottom: 30px;
+            padding: 20px 10px;
         }
 
         .header h1 {
-            font-size: clamp(2em, 5vw, 2.5em);
+            font-size: clamp(2em, 6vw, 3em);
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
             font-weight: 700;
         }
 
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            padding: 12px 24px;
-            background: rgba(255,255,255,0.9);
-            border: 2px solid #dc770e;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            color: #dc770e;
-        }
-
-        .nav-btn:hover {
-            background: #dc770e;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .nav-btn.active {
-            background: #dc770e;
-            color: white;
-        }
-
-        .section {
-            display: none;
+        .voting-container {
             background: rgba(255,255,255,0.95);
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
+            margin: 0 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
         }
 
-        .section.active {
-            display: block;
-        }
-
-        /* Upload Section */
-        .upload-area {
-            border: 3px dashed #ddd;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            background: #fafafa;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .upload-area:hover {
-            border-color: #dc770e;
-            background: #fffbf0;
-        }
-
-        .upload-area.dragover {
-            border-color: #fbd21d;
-            background: #fffef0;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .upload-btn {
-            background: #dc770e;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-        }
-
-        .upload-btn:hover {
-            background: #b8630c;
-            transform: translateY(-2px);
-        }
-
-        .image-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .image-pair {
+        .voting-pair {
             background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
         }
 
-        .image-pair:hover {
-            transform: translateY(-5px);
+        .voting-pair h3 {
+            margin-bottom: 15px;
+            color: #000;
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 600;
         }
 
-        /* Results Section */
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        .voting-pair p {
+            font-size: clamp(14px, 3vw, 16px);
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .images-comparison {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 25px;
+            margin-bottom: 25px;
         }
 
-        .result-card {
+        .vote-option {
             background: white;
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .result-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .result-images {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            justify-content: center;
-        }
-
-        .result-img-container {
-            text-align: center;
-            flex: 1;
-        }
-
-        .result-img {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
             width: 100%;
-            max-width: 150px;
-            height: 150px;
+            max-width: 350px;
+        }
+
+        .vote-option:hover, .vote-option:active {
+            transform: translateY(-3px);
+            border-color: #dc770e;
+            box-shadow: 0 8px 25px rgba(220, 119, 14, 0.25);
+        }
+
+        .vote-option img {
+            width: 100%;
+            max-width: 280px;
+            height: 280px;
             object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .result-stats {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
+        .vote-option h4 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #dc770e;
+            font-size: clamp(18px, 4vw, 24px);
         }
 
-        .progress-bar {
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 15px 0;
-            height: 25px;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #dc770e, #fbd21d);
-            height: 100%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
+        .vote-btn {
+            background: #dc770e;
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(16px, 4vw, 20px);
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+            width: 100%;
+            min-height: 60px;
+            touch-action: manipulation;
+        }
+
+        .vote-btn:hover, .vote-btn:active {
+            background: #b8630c;
+            transform: scale(1.02);
+        }
+
+        .vote-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .navigation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            padding: 0 10px;
+        }
+
+        .nav-control {
+            background: #fbd21d;
+            color: #000;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+            min-height: 50px;
+            min-width: 120px;
+            touch-action: manipulation;
+        }
+
+        .nav-control:hover, .nav-control:active {
+            background: #e6bd0a;
+            transform: translateY(-2px);
+        }
+
+        .nav-control:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #pairCounter {
+            font-weight: 600;
+            font-size: clamp(18px, 5vw, 22px);
+            color: #000;
+            text-align: center;
+            min-width: 140px;
+            padding: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
         }
 
         .status-message {
             text-align: center;
             padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
+            margin: 15px 10px;
+            border-radius: 15px;
             font-weight: 600;
             font-family: 'Dosis', sans-serif;
+            font-size: clamp(16px, 4vw, 18px);
         }
 
         .success {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #c3e6cb;
         }
 
         .warning {
             background: #fff3cd;
             color: #856404;
-            border: 1px solid #fbd21d;
+            border: 2px solid #fbd21d;
         }
 
         .error {
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #f5c6cb;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 30px;
             color: #666;
-            font-size: 18px;
+            font-size: clamp(18px, 5vw, 22px);
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
+        /* Optimizaciones para tablets */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .images-comparison {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .vote-option {
+                max-width: 300px;
+            }
+        }
+
+        /* Optimizaciones para pantallas grandes */
+        @media (min-width: 1025px) {
+            .images-comparison {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .vote-option {
+                max-width: 320px;
+            }
+        }
+
+        /* Optimizaciones para móviles pequeños */
+        @media (max-width: 480px) {
             .container {
-                padding: 10px;
+                padding: 5px;
             }
 
-            .nav-buttons {
-                gap: 8px;
+            .header {
+                padding: 15px 5px;
             }
 
-            .nav-btn {
-                padding: 10px 16px;
-                font-size: 14px;
+            .voting-container {
+                margin: 0 5px;
+                padding: 15px;
             }
 
-            .section {
-                padding: 20px;
+            .voting-pair {
+                padding: 15px;
             }
 
-            .upload-area {
-                padding: 25px;
+            .vote-option img {
+                height: 220px;
             }
 
-            .image-list {
-                grid-template-columns: 1fr;
-                gap: 15px;
+            .navigation-controls {
+                gap: 10px;
             }
 
-            .results-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
+            .nav-control {
+                padding: 12px 20px;
+                min-width: 100px;
             }
 
-            .result-images {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .result-img {
-                max-width: 120px;
-                height: 120px;
+            #pairCounter {
+                width: 100%;
+                order: -1;
+                margin-bottom: 15px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Admin Panel -->
-        <div id="admin-panel" class="admin-panel">
-            <div class="header">
-                <h1>👑 Panel de Administración</h1>
-                <p>Gestiona las imágenes y observa los resultados</p>
+        <div class="header">
+            <h1>¡Vota por tu imagen favorita!</h1>
+        </div>
+
+        <div class="voting-container">
+            <div id="votingContent">
+                <div class="loading">🔄 Cargando imágenes disponibles...</div>
             </div>
-
-            <div class="nav-buttons">
-                <button class="nav-btn active" onclick="showSection('upload')">📤 Cargar Imágenes</button>
-                <button class="nav-btn" onclick="showSection('results')">📊 Ver Resultados</button>
-                <button class="nav-btn" onclick="showSection('top8')">🏆 TOP 8</button>
-                <button class="nav-btn" onclick="showSection('admin')">⚙️ Administrar</button>
-            </div>
-
-            <!-- Upload Section -->
-            <div id="upload-section" class="section active">
-                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600;">Cargar Imagen Individual</h2>
-                <p style="text-align: center; margin-bottom: 20px; color: #666;">
-                    Sube UNA imagen que termine en -1 o -2 (ej: maria-1.jpg o maria-2.jpg)<br>
-                    <strong>La app automáticamente emparejará las imágenes cuando ambas estén subidas</strong>
-                </p>
-                
-                <div class="upload-area" id="uploadArea">
-                    <div style="font-size: 3em; margin-bottom: 15px;">📁</div>
-                    <h3>Arrastra una imagen aquí o haz clic para seleccionar</h3>
-                    <p style="margin-top: 10px; color: #666;">Sube solo UNA imagen (-1 o -2)</p>
-                    <input type="file" id="fileInput" class="file-input" accept="image/*">
-                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                        Seleccionar Imagen
-                    </button>
-                </div>
-
-                <div id="messageContainer"></div>
-                <div id="imageList" class="image-list"></div>
-            </div>
-
-            <!-- Results Section -->
-            <div id="results-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600;">📊 Resultados de Votación</h2>
-                <div id="resultsContent" class="results-grid">
-                    <div class="loading">🔄 Cargando resultados...</div>
-                </div>
-            </div>
-
-            <!-- TOP 8 Section -->
-            <div id="top8-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
-                    🏆 TOP 8 MÁS VOTADOS
-                </h2>
-                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
-                    Las 8 personas con mayor número de votos
-                </p>
-                <div id="top8Content">
-                    <div class="loading">🔄 Cargando TOP 8...</div>
-                </div>
-            </div>
-
-            <!-- Admin Section -->
-            <div id="admin-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
-                    ⚙️ ADMINISTRACIÓN DEL SISTEMA
-                </h2>
-                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
-                    Exportar datos y gestionar el concurso
-                </p>
-                
-                <div style="max-width: 800px; margin: 0 auto; display: grid; gap: 30px;">
-                    <!-- Exportar Excel -->
-                    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid #28a745;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <div style="font-size: 4em; margin-bottom: 15px;">📥</div>
-                            <h3 style="color: #28a745; font-weight: 700; margin-bottom: 10px;">EXPORTAR DATOS A EXCEL</h3>
-                            <p style="color: #666; margin-bottom: 20px;">
-                                Descarga todos los datos del concurso actual en formato Excel.<br>
-                                <strong>Incluye:</strong> nombres, fotos, votos, competencias y estadísticas completas.
-                            </p>
-                        </div>
-                        <button onclick="exportToExcel()" style="
-                            width: 100%;
-                            background: linear-gradient(135deg, #28a745, #34ce57);
-                            color: white;
-                            border: none;
-                            padding: 15px 30px;
-                            border-radius: 25px;
-                            font-size: 18px;
-                            font-weight: 700;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
-                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                            📥 DESCARGAR EXCEL
-                        </button>
-                    </div>
-
-                    <!-- Borrar Todo -->
-                    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid #dc3545;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <div style="font-size: 4em; margin-bottom: 15px;">🗑️</div>
-                            <h3 style="color: #dc3545; font-weight: 700; margin-bottom: 10px;">BORRAR TODO EL CONCURSO</h3>
-                            <p style="color: #666; margin-bottom: 20px;">
-                                <strong style="color: #dc3545;">⚠️ ATENCIÓN:</strong> Esta acción eliminará permanentemente:<br>
-                                • Todas las imágenes subidas<br>
-                                • Todos los votos registrados<br>
-                                • Todos los nombres de personas<br>
-                                • Todas las competencias creadas
-                            </p>
-                            <p style="color: #dc3545; font-weight: 600; font-size: 16px;">
-                                💡 RECOMENDACIÓN: Exporta los datos a Excel antes de borrar
-                            </p>
-                        </div>
-                        <button onclick="confirmDeleteAll()" style="
-                            width: 100%;
-                            background: linear-gradient(135deg, #dc3545, #e74c3c);
-                            color: white;
-                            border: none;
-                            padding: 15px 30px;
-                            border-radius: 25px;
-                            font-size: 18px;
-                            font-weight: 700;
-                            cursor: pointer;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                            🗑️ BORRAR TODO EL CONCURSO
-                        </button>
-                    </div>
-
-                    <!-- Estadísticas del Sistema -->
-                    <div id="systemStats" style="background: #f8f9fa; border-radius: 20px; padding: 25px; text-align: center;">
-                        <h3 style="color: #dc770e; margin-bottom: 20px; font-weight: 600;">📊 Estadísticas del Sistema</h3>
-                        <div id="statsContent">
-                            <div class="loading">🔄 Cargando estadísticas...</div>
-                        </div>
-                    </div>
-                </div>
+            
+            <div class="navigation-controls">
+                <button class="nav-control" id="prevBtn" onclick="previousPair()">⬅️ Anterior</button>
+                <div id="pairCounter">Cargando...</div>
+                <button class="nav-control" id="nextBtn" onclick="nextPair()">Siguiente ➡️</button>
             </div>
         </div>
     </div>
@@ -470,53 +338,36 @@
     <script>
         // Variables globales
         let imagePairs = [];
+        let currentPairIndex = 0;
         let votes = {};
         let personNames = {};
+        let userIP = null;
+        let votedPairs = new Set();
+
+        // Generar IP único para el usuario
+        function generateUserIP() {
+            if (!userIP) {
+                userIP = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('userIP', userIP);
+            }
+            return userIP;
+        }
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM cargado, inicializando...');
+            userIP = localStorage.getItem('userIP') || generateUserIP();
             
-            // Esperar a que Firebase se inicialice
             setTimeout(() => {
-                if (window.firebaseInitialized) {
-                    console.log('Firebase listo, configurando eventos...');
-                    setupDragAndDrop();
+                if (window.database) {
                     loadDataFromFirebase();
                 } else {
-                    showMessage('Error: No se pudo conectar con Firebase. Verifica tu conexión.', 'error');
+                    showMessage('Error conectando con Firebase. Intenta recargar la página.', 'error');
                 }
             }, 1000);
         });
 
-        // Mostrar mensajes
-        function showMessage(message, type) {
-            const container = document.getElementById('messageContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `status-message ${type}`;
-            messageDiv.textContent = message;
-            
-            container.innerHTML = '';
-            container.appendChild(messageDiv);
-            
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            
-            // Auto-hide después de 5 segundos para mensajes de éxito
-            if (type === 'success') {
-                setTimeout(() => {
-                    messageDiv.style.opacity = '0';
-                    setTimeout(() => messageDiv.remove(), 300);
-                }, 5000);
-            }
-        }
-
         // Cargar datos desde Firebase
         async function loadDataFromFirebase() {
-            if (!window.firebaseInitialized) {
-                showMessage('Firebase no está inicializado', 'error');
-                return;
-            }
-
             try {
                 const { ref, onValue } = window.firebaseRefs;
                 
@@ -525,17 +376,40 @@
                 onValue(pairsRef, (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        imagePairs = Object.values(data);
-                        displayImagePairs();
-                        console.log('Pares de imágenes cargados:', imagePairs.length);
+                        // Convertir a array y ordenar por timestamp descendente (más nuevo primero)
+                        const pairsArray = Object.entries(data).map(([key, value]) => ({
+                            ...value,
+                            firebaseKey: key
+                        }));
+                        
+                        imagePairs = pairsArray.sort((a, b) => {
+                            // Si tienen timestamp, usarlo (más nuevo primero)
+                            if (a.timestamp && b.timestamp) {
+                                return Number(b.timestamp) - Number(a.timestamp);
+                            }
+                            // Si solo uno tiene timestamp, ese va primero
+                            if (a.timestamp && !b.timestamp) return -1;
+                            if (!a.timestamp && b.timestamp) return 1;
+                            // Si ninguno tiene timestamp, ordenar por clave de Firebase (más reciente primero)
+                            return b.firebaseKey.localeCompare(a.firebaseKey);
+                        });
+                        
+                        console.log('Orden final:', imagePairs.map(p => ({
+                            name: p.name,
+                            firebaseKey: p.firebaseKey,
+                            timestamp: p.timestamp,
+                            hasTimestamp: !!p.timestamp
+                        })));
+                        
+                        setupVoting();
+                    } else {
+                        document.getElementById('votingContent').innerHTML = `
+                            <div class="status-message warning">
+                                No hay imágenes disponibles para votar.<br>
+                                El administrador debe subir imágenes primero.
+                            </div>
+                        `;
                     }
-                });
-
-                // Cargar imágenes individuales esperando pareja
-                const individualRef = ref(window.database, 'individualImages');
-                onValue(individualRef, (snapshot) => {
-                    const data = snapshot.val();
-                    displayPendingImages(data);
                 });
 
                 // Cargar nombres de personas
@@ -543,1026 +417,190 @@
                 onValue(namesRef, (snapshot) => {
                     const data = snapshot.val();
                     personNames = data || {};
-                    displayImagePairs();
-                    displayResults();
+                    if (imagePairs.length > 0) {
+                        displayVotingPair();
+                    }
                 });
 
-                // Cargar votos
+                // Cargar votos (para mostrar si ya votó)
                 const votesRef = ref(window.database, 'votes');
                 onValue(votesRef, (snapshot) => {
                     const data = snapshot.val();
                     votes = data || {};
-                    displayResults();
                 });
+
+                // Cargar IPs que han votado
+                loadVotedIPs();
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                showMessage('Error conectando con Firebase: ' + error.message, 'error');
+                showMessage('Error conectando con la base de datos.', 'error');
             }
         }
 
-        // Mostrar imágenes pendientes de emparejamiento
-        function displayPendingImages(pendingData) {
-            if (!pendingData) return;
-            
-            const pendingImages = Object.values(pendingData);
-            if (pendingImages.length === 0) return;
-            
-            // Agrupar por baseName
-            const grouped = {};
-            pendingImages.forEach(img => {
-                if (!grouped[img.baseName]) {
-                    grouped[img.baseName] = [];
-                }
-                grouped[img.baseName].push(img);
-            });
-            
-            // Mostrar mensaje de imágenes esperando pareja
-            const pendingCount = Object.keys(grouped).length;
-            if (pendingCount > 0) {
-                const names = Object.keys(grouped).join(', ');
-                showMessage(`${pendingCount} imagen(es) esperando pareja: ${names}`, 'warning');
-            }
-        }
-
-        // Configurar drag and drop
-        function setupDragAndDrop() {
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-
-            if (!uploadArea || !fileInput) {
-                console.error('Elementos de upload no encontrados');
-                return;
-            }
-
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.classList.add('dragover');
-            });
-
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.classList.remove('dragover');
-            });
-
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.classList.remove('dragover');
-                const files = Array.from(e.dataTransfer.files);
-                handleFiles(files);
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                const files = Array.from(e.target.files);
-                handleFiles(files);
-                // Limpiar input para permitir seleccionar el mismo archivo otra vez
-                e.target.value = '';
-            });
-
-            console.log('Drag and drop configurado correctamente');
-        }
-
-        // Manejar archivos seleccionados
-        function handleFiles(files) {
-            console.log('Archivos seleccionados:', files);
-            
-            // Solo permitir una imagen a la vez
-            if (files.length > 1) {
-                showMessage('Por favor, sube solo UNA imagen a la vez.', 'warning');
-                return;
-            }
-
-            const imageFile = files[0];
-            
-            if (!imageFile || !imageFile.type.startsWith('image/')) {
-                showMessage('Por favor, selecciona un archivo de imagen válido.', 'warning');
-                return;
-            }
-
-            console.log('Procesando archivo:', imageFile.name);
-            processImageFile(imageFile);
-        }
-
-        // Procesar archivo de imagen individual
-        async function processImageFile(file) {
-            const fileName = file.name;
-            const lastDot = fileName.lastIndexOf('.');
-            const nameWithoutExt = fileName.substring(0, lastDot);
-            
-            console.log('Procesando:', fileName, 'sin extensión:', nameWithoutExt);
-            
-            // Verificar que termine en -1 o -2
-            if (!nameWithoutExt.endsWith('-1') && !nameWithoutExt.endsWith('-2')) {
-                showMessage('El nombre del archivo debe terminar en -1 o -2 (ej: maria-1.jpg, juan-2.png)', 'error');
-                return;
-            }
-
-            showMessage('Subiendo imagen...', 'warning');
-            
+        // Cargar IPs que han votado
+        async function loadVotedIPs() {
             try {
-                const { storageRef, uploadBytes, getDownloadURL } = window.firebaseRefs;
+                const { ref, get } = window.firebaseRefs;
+                const ipRef = ref(window.database, `votedIPs/${userIP}`);
+                const snapshot = await get(ipRef);
                 
-                // Crear referencia única para evitar conflictos
-                const timestamp = Date.now();
-                const uniqueFileName = `${timestamp}_${fileName}`;
-                
-                // Subir imagen a Firebase Storage
-                const imageRef = storageRef(window.storage, `images/${uniqueFileName}`);
-                console.log('Subiendo a:', `images/${uniqueFileName}`);
-                
-                const snapshot = await uploadBytes(imageRef, file);
-                console.log('Imagen subida, obteniendo URL...');
-                
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                console.log('URL obtenida:', downloadURL);
-                
-                // Determinar el nombre base y el número de imagen
-                const isImage1 = nameWithoutExt.endsWith('-1');
-                const baseName = nameWithoutExt.slice(0, -2);
-                
-                // Guardar imagen individual en Firebase
-                await saveIndividualImageToFirebase(baseName, {
-                    name: fileName,
-                    originalName: fileName,
-                    uniqueName: uniqueFileName,
-                    url: downloadURL
-                }, isImage1 ? 1 : 2);
-                
-                showMessage(`Imagen subida: ${fileName}. Esperando pareja...`, 'success');
-                
-            } catch (error) {
-                console.error('Error subiendo imagen:', error);
-                showMessage('Error subiendo imagen: ' + error.message, 'error');
-            }
-        }
-
-        // Guardar imagen individual y verificar si se completa el par
-        async function saveIndividualImageToFirebase(baseName, imageData, imageNumber) {
-            try {
-                const { ref, get, set, push } = window.firebaseRefs;
-                
-                console.log('Guardando imagen individual:', baseName, imageNumber);
-                
-                // Verificar si ya existe una imagen del mismo par
-                const imagesRef = ref(window.database, 'individualImages');
-                const snapshot = await get(imagesRef);
-                const existingImages = snapshot.val() || {};
-                
-                // Buscar si existe la pareja
-                let partnerKey = null;
-                let partnerData = null;
-                
-                for (const [key, imageInfo] of Object.entries(existingImages)) {
-                    if (imageInfo.baseName === baseName && imageInfo.imageNumber !== imageNumber) {
-                        partnerKey = key;
-                        partnerData = imageInfo;
-                        break;
+                if (snapshot.exists()) {
+                    const votedPairsList = snapshot.val();
+                    votedPairs = new Set(votedPairsList || []);
+                    if (imagePairs.length > 0) {
+                        displayVotingPair();
                     }
                 }
-                
-                console.log('Pareja encontrada:', partnerData ? 'Sí' : 'No');
-                
-                // Guardar la imagen actual
-                const currentImageRef = push(ref(window.database, 'individualImages'));
-                await set(currentImageRef, {
-                    baseName: baseName,
-                    imageNumber: imageNumber,
-                    imageData: imageData,
-                    timestamp: Date.now()
-                });
-                
-                // Si encontramos la pareja, crear el par completo
-                if (partnerData) {
-                    showMessage(`¡Par completo encontrado para "${baseName}"! Creando competencia...`, 'success');
-                    
-                    // Crear el par completo
-                    const completePair = {
-                        name: baseName,
-                        image1: imageNumber === 1 ? imageData : partnerData.imageData,
-                        image2: imageNumber === 2 ? imageData : partnerData.imageData,
-                        createdAt: Date.now()
-                    };
-                    
-                    // Guardar en imagePairs
-                    const pairRef = push(ref(window.database, 'imagePairs'));
-                    await set(pairRef, {
-                        id: pairRef.key,
-                        ...completePair
-                    });
-                    
-                    // Eliminar las imágenes individuales ya que se creó el par
-                    await set(ref(window.database, `individualImages/${currentImageRef.key}`), null);
-                    if (partnerKey) {
-                        await set(ref(window.database, `individualImages/${partnerKey}`), null);
-                    }
-                    
-                    // Mostrar formulario para asignar nombres
-                    showPersonNamesForm([completePair]);
-                } else {
-                    showMessage(`Imagen "${baseName}-${imageNumber}" guardada. Esperando "${baseName}-${imageNumber === 1 ? '2' : '1'}"...`, 'warning');
-                }
-                
             } catch (error) {
-                console.error('Error guardando imagen:', error);
-                throw error;
+                console.error('Error cargando IPs votantes:', error);
             }
         }
 
-        // Mostrar formulario para asignar nombres
-        function showPersonNamesForm(newPairs) {
-            const formContainer = document.createElement('div');
-            formContainer.id = 'personNamesForm';
-            formContainer.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                overflow-y: auto;
-            `;
-
-            const formContent = document.createElement('div');
-            formContent.style.cssText = `
-                background: white;
-                border-radius: 20px;
-                padding: 30px;
-                max-width: 600px;
-                max-height: 90vh;
-                overflow-y: auto;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                margin: 20px;
-            `;
-
-            let formHTML = `
-                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600; color: #dc770e;">
-                    👥 Asignar Nombres a las Personas
-                </h2>
-                <p style="text-align: center; margin-bottom: 30px; color: #666;">
-                    Escribe el nombre de cada persona en las imágenes
-                </p>
-            `;
-
-            newPairs.forEach((pair, index) => {
-                const existingNames = personNames[pair.name] || { person1: '', person2: '' };
-
-                formHTML += `
-                    <div style="border: 2px solid #eee; border-radius: 15px; padding: 20px; margin-bottom: 20px;">
-                        <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Par: ${pair.name}</h3>
-                        
-                        <div style="display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap;">
-                            <div style="text-align: center;">
-                                <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
-                                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image1.name}</p>
-                                <input 
-                                    type="text" 
-                                    id="person1_${index}" 
-                                    placeholder="Nombre de la persona"
-                                    value="${existingNames.person1}"
-                                    style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
-                                    required
-                                >
-                            </div>
-                            
-                            <div style="font-size: 24px; color: #dc770e; font-weight: bold;">VS</div>
-                            
-                            <div style="text-align: center;">
-                                <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px;">
-                                <p style="font-size: 12px; color: #666; margin-bottom: 5px;">${pair.image2.name}</p>
-                                <input 
-                                    type="text" 
-                                    id="person2_${index}" 
-                                    placeholder="Nombre de la persona"
-                                    value="${existingNames.person2}"
-                                    style="width: 140px; padding: 8px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Dosis', sans-serif; text-align: center;"
-                                    required
-                                >
-                            </div>
-                        </div>
+        // Configurar votación
+        function setupVoting() {
+            if (imagePairs.length === 0) {
+                document.getElementById('votingContent').innerHTML = `
+                    <div class="status-message warning">
+                        No hay imágenes disponibles para votar.<br>
+                        Espera a que el administrador cargue imágenes.
                     </div>
                 `;
-            });
+                return;
+            }
 
-            formHTML += `
-                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px;">
-                    <button onclick="cancelPersonNames()" style="background: #ccc; color: #000; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Dosis', sans-serif;">
-                        ❌ Cancelar
-                    </button>
-                    <button onclick="savePersonNamesFromForm()" style="background: #dc770e; color: white; border: none; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-size: 16px; font-weight: 600; font-family: 'Dosis', sans-serif;">
-                        ✅ Guardar Nombres
-                    </button>
+            currentPairIndex = 0;
+            displayVotingPair();
+            updatePairCounter();
+        }
+
+        // Mostrar par actual para votación
+        function displayVotingPair() {
+            if (currentPairIndex >= imagePairs.length) {
+                document.getElementById('votingContent').innerHTML = `
+                    <div class="status-message success">
+                        ¡Has revisado todos los pares de imágenes!<br>
+                        Gracias por participar en la votación.
+                    </div>
+                `;
+                return;
+            }
+
+            const pair = imagePairs[currentPairIndex];
+            const pairId = pair.name;
+            const hasVoted = votedPairs.has(pairId);
+            
+            const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
+
+            document.getElementById('votingContent').innerHTML = `
+                <div class="voting-pair">
+                    <h3>¿Cuál imagen prefieres?</h3>
+                    <p>Competencia: <strong>${pair.name}</strong></p>
+                    ${hasVoted ? '<div class="status-message success">✅ Ya has votado en esta competencia</div>' : ''}
+                    <div class="images-comparison">
+                        <div class="vote-option">
+                            <img src="${pair.image1.url}" alt="${names.person1}">
+                            <h4>${names.person1}</h4>
+                            <button class="vote-btn" onclick="vote('${pairId}', 1)" ${hasVoted ? 'disabled' : ''}>
+                                ${hasVoted ? '✅ Ya votaste' : '👍 Votar por ' + names.person1}
+                            </button>
+                        </div>
+                        <div class="vote-option">
+                            <img src="${pair.image2.url}" alt="${names.person2}">
+                            <h4>${names.person2}</h4>
+                            <button class="vote-btn" onclick="vote('${pairId}', 2)" ${hasVoted ? 'disabled' : ''}>
+                                ${hasVoted ? '✅ Ya votaste' : '👍 Votar por ' + names.person2}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
+        }
 
-            formContent.innerHTML = formHTML;
-            formContainer.appendChild(formContent);
-            document.body.appendChild(formContainer);
+        // Votar por una imagen
+        async function vote(pairId, imageNumber) {
+            if (votedPairs.has(pairId)) {
+                showMessage('Ya has votado en esta competencia.', 'warning');
+                return;
+            }
+
+            try {
+                const { ref, get } = window.firebaseRefs;
+                
+                // Actualizar votos en Firebase
+                const voteRef = ref(window.database, `votes/${pairId}/image${imageNumber}`);
+                const snapshot = await get(voteRef);
+                const currentVotes = snapshot.val() || 0;
+                
+                // Usar set desde el módulo importado
+                const { set } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
+                await set(voteRef, currentVotes + 1);
+                
+                // Registrar IP como votante
+                votedPairs.add(pairId);
+                const ipRef = ref(window.database, `votedIPs/${userIP}`);
+                await set(ipRef, Array.from(votedPairs));
+                
+                // Actualizar display
+                displayVotingPair();
+                
+                const personName = personNames[pairId] ? 
+                    (imageNumber === 1 ? personNames[pairId].person1 : personNames[pairId].person2) : 
+                    `Opción ${imageNumber}`;
+                    
+                showMessage(`¡Voto registrado por ${personName}!`, 'success');
+                
+            } catch (error) {
+                console.error('Error votando:', error);
+                showMessage('Error registrando voto. Intenta nuevamente.', 'error');
+            }
+        }
+
+        // Navegación entre pares
+        function previousPair() {
+            if (currentPairIndex > 0) {
+                currentPairIndex--;
+                displayVotingPair();
+                updatePairCounter();
+            }
+        }
+
+        function nextPair() {
+            if (currentPairIndex < imagePairs.length - 1) {
+                currentPairIndex++;
+                displayVotingPair();
+                updatePairCounter();
+            }
+        }
+
+        // Actualizar contador de pares
+        function updatePairCounter() {
+            const counter = document.getElementById('pairCounter');
+            counter.textContent = `${currentPairIndex + 1} de ${imagePairs.length}`;
+            
+            document.getElementById('prevBtn').disabled = currentPairIndex === 0;
+            document.getElementById('nextBtn').disabled = currentPairIndex === imagePairs.length - 1;
+        }
+
+        // Mostrar mensajes de estado
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status-message ${type}`;
+            messageDiv.innerHTML = message;
+            
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translateX(-50%)';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.maxWidth = '90vw';
+            
+            document.body.appendChild(messageDiv);
             
             setTimeout(() => {
-                const firstInput = document.getElementById('person1_0');
-                if (firstInput) firstInput.focus();
-            }, 100);
+                messageDiv.remove();
+            }, 4000);
         }
-
-        // Guardar nombres desde el formulario
-        async function savePersonNamesFromForm() {
-            const form = document.getElementById('personNamesForm');
-            const person1Inputs = form.querySelectorAll('[id^="person1_"]');
-            const person2Inputs = form.querySelectorAll('[id^="person2_"]');
-            
-            let allFieldsFilled = true;
-            let savedCount = 0;
-            
-            const namesToSave = {};
-            for (let i = 0; i < person1Inputs.length; i++) {
-                const person1 = person1Inputs[i].value.trim();
-                const person2 = person2Inputs[i].value.trim();
-                
-                if (!person1 || !person2) {
-                    allFieldsFilled = false;
-                    continue;
-                }
-                
-                const pairName = imagePairs[imagePairs.length - person1Inputs.length + i]?.name;
-                if (pairName) {
-                    namesToSave[pairName] = {
-                        person1: person1,
-                        person2: person2
-                    };
-                    savedCount++;
-                }
-            }
-            
-            if (!allFieldsFilled) {
-                showMessage('Por favor, completa todos los nombres antes de continuar.', 'warning');
-                return;
-            }
-            
-            if (savedCount === 0) {
-                showMessage('No se pudieron guardar los nombres. Intenta nuevamente.', 'error');
-                return;
-            }
-            
-            try {
-                const { ref, set } = window.firebaseRefs;
-                for (const [pairName, names] of Object.entries(namesToSave)) {
-                    const nameRef = ref(window.database, `personNames/${pairName}`);
-                    await set(nameRef, names);
-                }
-                
-                const formElement = document.getElementById('personNamesForm');
-                if (formElement) formElement.remove();
-                
-                showMessage(`Se guardaron ${savedCount} pares con nombres correctamente.`, 'success');
-                
-            } catch (error) {
-                console.error('Error guardando nombres:', error);
-                showMessage('Error guardando nombres en Firebase.', 'error');
-            }
-        }
-
-        // Cancelar asignación de nombres
-        function cancelPersonNames() {
-            const formElement = document.getElementById('personNamesForm');
-            if (formElement) formElement.remove();
-        }
-
-        // Mostrar pares de imágenes
-        function displayImagePairs() {
-            const imageList = document.getElementById('imageList');
-            if (!imageList) return;
-            
-            imageList.innerHTML = '';
-
-            imagePairs.forEach((pair, index) => {
-                const pairDiv = document.createElement('div');
-                pairDiv.className = 'image-pair';
-                
-                const names = personNames[pair.name] || { person1: 'Persona 1', person2: 'Persona 2' };
-                
-                pairDiv.innerHTML = `
-                    <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">${pair.name}</h4>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <div style="text-align: center;">
-                            <img src="${pair.image1.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
-                            <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person1}</p>
-                            <p style="font-size: 12px; color: #666;">${pair.image1.name}</p>
-                        </div>
-                        <div style="display: flex; align-items: center; font-size: 20px; font-weight: bold; color: #dc770e;">VS</div>
-                        <div style="text-align: center;">
-                            <img src="${pair.image2.url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
-                            <p style="margin-top: 5px; font-size: 14px; font-weight: 600; color: #dc770e;">${names.person2}</p>
-                            <p style="font-size: 12px; color: #666;">${pair.image2.name}</p>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button onclick="editPersonNames('${pair.name}', ${index})" style="flex: 1; padding: 8px; background: #fbd21d; color: #000; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
-                            ✏️ Editar Nombres
-                        </button>
-                        <button onclick="removePair('${pair.id}')" style="flex: 1; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
-                            🗑️ Eliminar Par
-                        </button>
-                    </div>
-                `;
-                
-                imageList.appendChild(pairDiv);
-            });
-        }
-
-        // Editar nombres de personas
-        function editPersonNames(pairName, index) {
-            const pair = imagePairs.find(p => p.name === pairName);
-            if (pair) showPersonNamesForm([pair]);
-        }
-
-        // Eliminar par de imágenes
-        async function removePair(pairId) {
-            if (!confirm('¿Estás seguro de que quieres eliminar este par de imágenes?')) {
-                return;
-            }
-            
-            try {
-                const { ref, set } = window.firebaseRefs;
-                
-                const pairRef = ref(window.database, `imagePairs/${pairId}`);
-                await set(pairRef, null);
-                
-                showMessage('Par de imágenes eliminado.', 'success');
-                
-            } catch (error) {
-                console.error('Error eliminando par:', error);
-                showMessage('Error eliminando par de imágenes.', 'error');
-            }
-        }
-
-        // Cambiar sección
-        function showSection(section) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(section + '-section').classList.add('active');
-            event.target.classList.add('active');
-            
-            if (section === 'results') {
-                displayResults();
-            } else if (section === 'upload') {
-                displayImagePairs();
-            } else if (section === 'top8') {
-                displayTop8();
-            } else if (section === 'admin') {
-                displaySystemStats();
-            }
-        }
-
-        // Mostrar estadísticas del sistema
-        function displaySystemStats() {
-            const statsContent = document.getElementById('statsContent');
-            
-            try {
-                // Calcular estadísticas
-                const totalPairs = imagePairs.length;
-                const totalPersons = totalPairs * 2;
-                const totalVotes = Object.values(votes).reduce((sum, pairVotes) => {
-                    return sum + (pairVotes.image1 || 0) + (pairVotes.image2 || 0);
-                }, 0);
-                const totalImages = totalPairs * 2;
-                const competitionsWithVotes = Object.keys(votes).length;
-                
-                statsContent.innerHTML = `
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPairs}</div>
-                            <div style="color: #666;">Competencias</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPersons}</div>
-                            <div style="color: #666;">Personas</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalImages}</div>
-                            <div style="color: #666;">Imágenes</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalVotes}</div>
-                            <div style="color: #666;">Votos Totales</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${competitionsWithVotes}</div>
-                            <div style="color: #666;">Con Votos</div>
-                        </div>
-                    </div>
-                `;
-                
-            } catch (error) {
-                console.error('Error calculando estadísticas:', error);
-                statsContent.innerHTML = `
-                    <div style="color: #dc3545;">Error cargando estadísticas: ${error.message}</div>
-                `;
-            }
-        }
-
-        // Exportar datos a Excel
-        function exportToExcel() {
-            try {
-                console.log('Iniciando exportación a Excel...');
-                
-                if (imagePairs.length === 0) {
-                    showMessage('No hay datos para exportar.', 'warning');
-                    return;
-                }
-
-                // Crear datos para Excel
-                const excelData = [];
-                
-                // Encabezados
-                excelData.push([
-                    'Competencia',
-                    'Persona 1',
-                    'Imagen 1',
-                    'Votos Persona 1',
-                    'Persona 2', 
-                    'Imagen 2',
-                    'Votos Persona 2',
-                    'Total Votos',
-                    'Ganador',
-                    'Fecha Creación'
-                ]);
-                
-                // Datos de cada competencia
-                imagePairs.forEach(pair => {
-                    const pairId = pair.name;
-                    const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
-                    const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
-                    const totalVotes = (pairVotes.image1 || 0) + (pairVotes.image2 || 0);
-                    
-                    let winner = 'Empate';
-                    if (pairVotes.image1 > pairVotes.image2) {
-                        winner = names.person1;
-                    } else if (pairVotes.image2 > pairVotes.image1) {
-                        winner = names.person2;
-                    }
-                    
-                    const creationDate = pair.createdAt ? new Date(pair.createdAt).toLocaleDateString() : 'N/A';
-                    
-                    excelData.push([
-                        pair.name,
-                        names.person1,
-                        pair.image1.name || 'imagen1.jpg',
-                        pairVotes.image1 || 0,
-                        names.person2,
-                        pair.image2.name || 'imagen2.jpg', 
-                        pairVotes.image2 || 0,
-                        totalVotes,
-                        winner,
-                        creationDate
-                    ]);
-                });
-                
-                // Agregar resumen TOP 8
-                excelData.push([]);
-                excelData.push(['=== TOP 8 MÁS VOTADOS ===']);
-                excelData.push(['Posición', 'Nombre', 'Competencia', 'Votos']);
-                
-                // Calcular TOP 8
-                const allPersons = [];
-                imagePairs.forEach(pair => {
-                    const pairId = pair.name;
-                    const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
-                    const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
-                    
-                    allPersons.push({
-                        name: names.person1,
-                        votes: pairVotes.image1 || 0,
-                        competition: pair.name
-                    });
-                    
-                    allPersons.push({
-                        name: names.person2,
-                        votes: pairVotes.image2 || 0,
-                        competition: pair.name
-                    });
-                });
-                
-                const top8 = allPersons.sort((a, b) => b.votes - a.votes).slice(0, 8);
-                top8.forEach((person, index) => {
-                    excelData.push([
-                        index + 1,
-                        person.name,
-                        person.competition,
-                        person.votes
-                    ]);
-                });
-                
-                // Convertir a CSV
-                const csvContent = excelData.map(row => 
-                    row.map(cell => `"${cell}"`).join(',')
-                ).join('\n');
-                
-                // Crear y descargar archivo
-                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                
-                const now = new Date();
-                const filename = `Concurso_Votacion_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}-${now.getMinutes().toString().padStart(2,'0')}.csv`;
-                
-                link.setAttribute('download', filename);
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showMessage(`Datos exportados exitosamente: ${filename}`, 'success');
-                console.log('Exportación completada exitosamente');
-                
-            } catch (error) {
-                console.error('Error exportando a Excel:', error);
-                showMessage('Error al exportar datos: ' + error.message, 'error');
-            }
-        }
-
-        // Confirmar borrado completo
-        function confirmDeleteAll() {
-            const confirmMessage = `
-⚠️ CONFIRMACIÓN DE BORRADO COMPLETO ⚠️
-
-Esta acción eliminará PERMANENTEMENTE:
-• ${imagePairs.length} competencias
-• ${imagePairs.length * 2} personas
-• ${Object.keys(votes).reduce((sum, key) => sum + (votes[key].image1 || 0) + (votes[key].image2 || 0), 0)} votos
-• Todas las imágenes subidas
-
-¿Estás completamente seguro de que quieres BORRAR TODO?
-
-Escribe "BORRAR TODO" para confirmar:`;
-
-            const userInput = prompt(confirmMessage);
-            
-            if (userInput === "BORRAR TODO") {
-                deleteAllData();
-            } else if (userInput !== null) {
-                showMessage('Borrado cancelado. Texto de confirmación incorrecto.', 'warning');
-            }
-        }
-
-        // Borrar todos los datos
-        async function deleteAllData() {
-            try {
-                showMessage('Borrando todos los datos...', 'warning');
-                
-                const { ref, set } = window.firebaseRefs;
-                
-                // Borrar todas las tablas
-                await set(ref(window.database, 'imagePairs'), null);
-                await set(ref(window.database, 'votes'), null);
-                await set(ref(window.database, 'personNames'), null);
-                await set(ref(window.database, 'individualImages'), null);
-                
-                // Limpiar variables locales
-                imagePairs = [];
-                votes = {};
-                personNames = {};
-                
-                // Actualizar UI
-                displayImagePairs();
-                displayResults();
-                displayTop8();
-                displaySystemStats();
-                
-                showMessage('🗑️ TODOS LOS DATOS HAN SIDO ELIMINADOS. El sistema está listo para un nuevo concurso.', 'success');
-                console.log('Borrado completo exitoso');
-                
-            } catch (error) {
-                console.error('Error borrando datos:', error);
-                showMessage('Error al borrar datos: ' + error.message, 'error');
-            }
-        }
-
-        // Mostrar resultados
-        function displayResults() {
-            const resultsContent = document.getElementById('resultsContent');
-            
-            if (imagePairs.length === 0) {
-                resultsContent.innerHTML = `
-                    <div class="status-message warning">
-                        No hay pares de imágenes para mostrar resultados.
-                    </div>
-                `;
-                return;
-            }
-
-            resultsContent.innerHTML = '';
-
-            imagePairs.forEach(pair => {
-                const pairId = pair.name;
-                const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
-                const totalVotes = pairVotes.image1 + pairVotes.image2;
-                
-                const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
-
-                const winner = pairVotes.image1 > pairVotes.image2 ? 1 : 
-                              pairVotes.image2 > pairVotes.image1 ? 2 : 0;
-
-                const resultCard = document.createElement('div');
-                resultCard.className = 'result-card';
-                
-                resultCard.innerHTML = `
-                    <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${pair.name}</h3>
-                    <div class="result-images">
-                        <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
-                            <img src="${pair.image1.url}" class="result-img">
-                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person1}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${pairVotes.image1 || 0} votos</p>
-                            ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
-                        </div>
-                        <div class="result-img-container" style="${winner === 2 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
-                            <img src="${pair.image2.url}" class="result-img">
-                            <p style="margin-top: 8px; font-weight: 600; color: #dc770e; font-size: 16px;">${names.person2}</p>
-                            <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${pairVotes.image2 || 0} votos</p>
-                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
-                        </div>
-                    </div>
-                    <div class="result-stats">
-                        <p style="text-align: center; margin-bottom: 10px; font-weight: 600;">Total de votos: ${totalVotes}</p>
-                        ${totalVotes > 0 ? `
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${totalVotes > 0 ? (pairVotes.image1 / totalVotes * 100) : 50}%">
-                                    ${totalVotes > 0 ? Math.round(pairVotes.image1 / totalVotes * 100) : 0}%
-                                </div>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${totalVotes > 0 ? (pairVotes.image2 / totalVotes * 100) : 50}%">
-                                    ${totalVotes > 0 ? Math.round(pairVotes.image2 / totalVotes * 100) : 0}%
-                                </div>
-                            </div>
-                        ` : '<p style="text-align: center; color: #666;">Sin votos aún</p>'}
-                    </div>
-                `;
-                
-                resultsContent.appendChild(resultCard);
-            });
-        }
-
-        // Mostrar TOP 8 más votados
-        function displayTop8() {
-            console.log('Iniciando displayTop8...');
-            const top8Content = document.getElementById('top8Content');
-            
-            if (!top8Content) {
-                console.error('Contenedor top8Content no encontrado');
-                return;
-            }
-            
-            console.log('imagePairs:', imagePairs.length);
-            console.log('votes:', Object.keys(votes).length);
-            console.log('personNames:', Object.keys(personNames).length);
-            
-            if (imagePairs.length === 0) {
-                top8Content.innerHTML = `
-                    <div class="status-message warning">
-                        No hay pares de imágenes para mostrar el TOP 8.
-                    </div>
-                `;
-                return;
-            }
-
-            // Mostrar loading mientras se procesa
-            top8Content.innerHTML = `
-                <div class="loading">🔄 Procesando TOP 8...</div>
-            `;
-
-            try {
-                // Recopilar todas las personas con sus votos
-                const allPersons = [];
-                
-                console.log('Procesando pares de imágenes...');
-                imagePairs.forEach((pair, index) => {
-                    console.log(`Procesando par ${index + 1}: ${pair.name}`);
-                    
-                    const pairId = pair.name;
-                    const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
-                    const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
-                    
-                    console.log(`  - Votos: ${pairVotes.image1} vs ${pairVotes.image2}`);
-                    console.log(`  - Nombres: ${names.person1} vs ${names.person2}`);
-                    
-                    // Verificar que las imágenes existan
-                    if (pair.image1 && pair.image1.url && pair.image2 && pair.image2.url) {
-                        // Agregar persona 1
-                        allPersons.push({
-                            name: names.person1,
-                            image: pair.image1.url,
-                            votes: pairVotes.image1 || 0,
-                            pairName: pair.name
-                        });
-                        
-                        // Agregar persona 2
-                        allPersons.push({
-                            name: names.person2,
-                            image: pair.image2.url,
-                            votes: pairVotes.image2 || 0,
-                            pairName: pair.name
-                        });
-                    } else {
-                        console.warn(`Par ${pair.name} no tiene imágenes válidas`);
-                    }
-                });
-                
-                console.log(`Total de personas encontradas: ${allPersons.length}`);
-                
-                if (allPersons.length === 0) {
-                    top8Content.innerHTML = `
-                        <div class="status-message warning">
-                            No se encontraron personas con datos válidos para el TOP 8.
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Ordenar por votos (mayor a menor) y tomar los primeros 8
-                console.log('Ordenando por votos...');
-                const top8 = allPersons.sort((a, b) => {
-                    const votesA = parseInt(a.votes) || 0;
-                    const votesB = parseInt(b.votes) || 0;
-                    return votesB - votesA;
-                }).slice(0, 8);
-                
-                console.log('TOP 8 calculado:', top8.map(p => `${p.name}: ${p.votes} votos`));
-                
-                // Limpiar contenido
-                top8Content.innerHTML = '';
-                
-                // Grid para TOP 8
-                const top8Grid = document.createElement('div');
-                top8Grid.style.cssText = `
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 25px;
-                    max-width: 1000px;
-                    margin: 0 auto;
-                `;
-                
-                console.log('Creando tarjetas del TOP 8...');
-                top8.forEach((person, index) => {
-                    console.log(`Creando tarjeta para ${person.name} (posición ${index + 1})`);
-                    
-                    const positionColors = {
-                        0: '#FFD700', // Oro
-                        1: '#C0C0C0', // Plata  
-                        2: '#CD7F32', // Bronce
-                    };
-                    
-                    const borderColor = positionColors[index] || '#dc770e';
-                    const position = index + 1;
-                    
-                    const personCard = document.createElement('div');
-                    personCard.style.cssText = `
-                        background: white;
-                        border-radius: 20px;
-                        padding: 20px;
-                        text-align: center;
-                        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-                        border: 4px solid ${borderColor};
-                        transition: transform 0.3s ease;
-                        position: relative;
-                    `;
-                    
-                    // Agregar efectos hover de manera segura
-                    try {
-                        personCard.addEventListener('mouseenter', () => {
-                            personCard.style.transform = 'translateY(-10px) scale(1.02)';
-                        });
-                        
-                        personCard.addEventListener('mouseleave', () => {
-                            personCard.style.transform = 'translateY(0) scale(1)';
-                        });
-                    } catch (e) {
-                        console.warn('Error agregando event listeners:', e);
-                    }
-                    
-                    // Agregar corona para los primeros 3 lugares
-                    let crownEmoji = '';
-                    if (index === 0) crownEmoji = '👑';
-                    else if (index === 1) crownEmoji = '🥈';
-                    else if (index === 2) crownEmoji = '🥉';
-                    
-                    personCard.innerHTML = `
-                        <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: ${borderColor}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                            ${position}
-                        </div>
-                        
-                        ${crownEmoji ? `<div style="font-size: 2.5em; margin-bottom: 10px;">${crownEmoji}</div>` : ''}
-                        
-                        <img src="${person.image}" style="
-                            width: 120px;
-                            height: 120px;
-                            object-fit: cover;
-                            border-radius: 50%;
-                            margin-bottom: 15px;
-                            border: 3px solid ${borderColor};
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                        " onerror="this.style.display='none'">
-                        
-                        <h3 style="
-                            font-weight: 700;
-                            color: #333;
-                            margin-bottom: 10px;
-                            font-size: 18px;
-                            min-height: 50px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        ">${person.name || 'Sin nombre'}</h3>
-                        
-                        <div style="
-                            background: linear-gradient(135deg, #dc770e, #fbd21d);
-                            color: white;
-                            padding: 12px;
-                            border-radius: 15px;
-                            font-weight: 700;
-                            font-size: 20px;
-                            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                            margin-bottom: 10px;
-                        ">
-                            🗳️ ${person.votes} votos
-                        </div>
-                        
-                        <p style="
-                            color: #666;
-                            font-size: 14px;
-                            font-style: italic;
-                        ">Competencia: ${person.pairName || 'N/A'}</p>
-                    `;
-                    
-                    top8Grid.appendChild(personCard);
-                });
-                
-                top8Content.appendChild(top8Grid);
-                
-                // Agregar estadísticas adicionales
-                console.log('Agregando estadísticas...');
-                if (top8.length > 0) {
-                    const statsDiv = document.createElement('div');
-                    statsDiv.style.cssText = `
-                        margin-top: 40px;
-                        padding: 25px;
-                        background: #f8f9fa;
-                        border-radius: 15px;
-                        text-align: center;
-                    `;
-                    
-                    const totalVotesTop8 = top8.reduce((sum, person) => sum + (parseInt(person.votes) || 0), 0);
-                    const maxVotes = parseInt(top8[0]?.votes) || 0;
-                    const minVotes = parseInt(top8[top8.length - 1]?.votes) || 0;
-                    const avgVotes = top8.length > 0 ? Math.round(totalVotesTop8 / top8.length) : 0;
-                    
-                    statsDiv.innerHTML = `
-                        <h3 style="color: #dc770e; margin-bottom: 20px; font-weight: 600;">📈 Estadísticas del TOP 8</h3>
-                        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${totalVotesTop8}</div>
-                                <div style="color: #666;">Total de votos</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${maxVotes}</div>
-                                <div style="color: #666;">Máximo de votos</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${minVotes}</div>
-                                <div style="color: #666;">Mínimo de votos</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 24px; font-weight: 700; color: #dc770e;">${avgVotes}</div>
-                                <div style="color: #666;">Promedio de votos</div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    top8Content.appendChild(statsDiv);
-                }
-                
-                console.log('TOP 8 creado exitosamente');
-                
-            } catch (error) {
-                console.error('Error en displayTop8:', error);
-                top8Content.innerHTML = `
-                    <div class="status-message error">
-                        Error cargando el TOP 8: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // Exponer funciones globalmente para los eventos onclick
-        window.showSection = showSection;
-        window.editPersonNames = editPersonNames;
-        window.removePair = removePair;
-        window.savePersonNamesFromForm = savePersonNamesFromForm;
-        window.cancelPersonNames = cancelPersonNames;
     </script>
 </body>
 </html>
