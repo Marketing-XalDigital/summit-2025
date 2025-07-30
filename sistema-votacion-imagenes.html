@@ -378,11 +378,28 @@
                     if (data) {
                         // Convertir a array y ordenar por timestamp descendente (más nuevo primero)
                         const pairsArray = Object.values(data);
+                        
+                        // Debug: ver los timestamps
+                        console.log('Datos antes de ordenar:', pairsArray.map(p => ({
+                            name: p.name,
+                            timestamp: p.timestamp,
+                            timestampType: typeof p.timestamp
+                        })));
+                        
                         imagePairs = pairsArray.sort((a, b) => {
-                            const timestampA = a.timestamp || 0;
-                            const timestampB = b.timestamp || 0;
-                            return timestampB - timestampA; // Orden descendente
+                            // Convertir timestamps a números si vienen como string
+                            const timestampA = Number(a.timestamp) || 0;
+                            const timestampB = Number(b.timestamp) || 0;
+                            
+                            console.log(`Comparando: ${a.name} (${timestampA}) vs ${b.name} (${timestampB})`);
+                            return timestampB - timestampA; // Orden descendente (más nuevo primero)
                         });
+                        
+                        console.log('Orden final:', imagePairs.map(p => ({
+                            name: p.name,
+                            timestamp: p.timestamp
+                        })));
+                        
                         setupVoting();
                     } else {
                         document.getElementById('votingContent').innerHTML = `
