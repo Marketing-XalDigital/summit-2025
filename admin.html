@@ -339,6 +339,7 @@
                 <button class="nav-btn active" onclick="showSection('upload')">📤 Cargar Imágenes</button>
                 <button class="nav-btn" onclick="showSection('results')">📊 Ver Resultados</button>
                 <button class="nav-btn" onclick="showSection('top8')">🏆 TOP 8</button>
+                <button class="nav-btn" onclick="showSection('admin')">⚙️ Administrar</button>
             </div>
 
             <!-- Upload Section -->
@@ -381,6 +382,86 @@
                 </p>
                 <div id="top8Content">
                     <div class="loading">🔄 Cargando TOP 8...</div>
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
+                    ⚙️ ADMINISTRACIÓN DEL SISTEMA
+                </h2>
+                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
+                    Exportar datos y gestionar el concurso
+                </p>
+                
+                <div style="max-width: 800px; margin: 0 auto; display: grid; gap: 30px;">
+                    <!-- Exportar Excel -->
+                    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid #28a745;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 4em; margin-bottom: 15px;">📥</div>
+                            <h3 style="color: #28a745; font-weight: 700; margin-bottom: 10px;">EXPORTAR DATOS A EXCEL</h3>
+                            <p style="color: #666; margin-bottom: 20px;">
+                                Descarga todos los datos del concurso actual en formato Excel.<br>
+                                <strong>Incluye:</strong> nombres, fotos, votos, competencias y estadísticas completas.
+                            </p>
+                        </div>
+                        <button onclick="exportToExcel()" style="
+                            width: 100%;
+                            background: linear-gradient(135deg, #28a745, #34ce57);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 25px;
+                            font-size: 18px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                            📥 DESCARGAR EXCEL
+                        </button>
+                    </div>
+
+                    <!-- Borrar Todo -->
+                    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid #dc3545;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 4em; margin-bottom: 15px;">🗑️</div>
+                            <h3 style="color: #dc3545; font-weight: 700; margin-bottom: 10px;">BORRAR TODO EL CONCURSO</h3>
+                            <p style="color: #666; margin-bottom: 20px;">
+                                <strong style="color: #dc3545;">⚠️ ATENCIÓN:</strong> Esta acción eliminará permanentemente:<br>
+                                • Todas las imágenes subidas<br>
+                                • Todos los votos registrados<br>
+                                • Todos los nombres de personas<br>
+                                • Todas las competencias creadas
+                            </p>
+                            <p style="color: #dc3545; font-weight: 600; font-size: 16px;">
+                                💡 RECOMENDACIÓN: Exporta los datos a Excel antes de borrar
+                            </p>
+                        </div>
+                        <button onclick="confirmDeleteAll()" style="
+                            width: 100%;
+                            background: linear-gradient(135deg, #dc3545, #e74c3c);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 25px;
+                            font-size: 18px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                            🗑️ BORRAR TODO EL CONCURSO
+                        </button>
+                    </div>
+
+                    <!-- Estadísticas del Sistema -->
+                    <div id="systemStats" style="background: #f8f9fa; border-radius: 20px; padding: 25px; text-align: center;">
+                        <h3 style="color: #dc770e; margin-bottom: 20px; font-weight: 600;">📊 Estadísticas del Sistema</h3>
+                        <div id="statsContent">
+                            <div class="loading">🔄 Cargando estadísticas...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -931,6 +1012,233 @@
                 displayImagePairs();
             } else if (section === 'top8') {
                 displayTop8();
+            } else if (section === 'admin') {
+                displaySystemStats();
+            }
+        }
+
+        // Mostrar estadísticas del sistema
+        function displaySystemStats() {
+            const statsContent = document.getElementById('statsContent');
+            
+            try {
+                // Calcular estadísticas
+                const totalPairs = imagePairs.length;
+                const totalPersons = totalPairs * 2;
+                const totalVotes = Object.values(votes).reduce((sum, pairVotes) => {
+                    return sum + (pairVotes.image1 || 0) + (pairVotes.image2 || 0);
+                }, 0);
+                const totalImages = totalPairs * 2;
+                const competitionsWithVotes = Object.keys(votes).length;
+                
+                statsContent.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPairs}</div>
+                            <div style="color: #666;">Competencias</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPersons}</div>
+                            <div style="color: #666;">Personas</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalImages}</div>
+                            <div style="color: #666;">Imágenes</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalVotes}</div>
+                            <div style="color: #666;">Votos Totales</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${competitionsWithVotes}</div>
+                            <div style="color: #666;">Con Votos</div>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error calculando estadísticas:', error);
+                statsContent.innerHTML = `
+                    <div style="color: #dc3545;">Error cargando estadísticas: ${error.message}</div>
+                `;
+            }
+        }
+
+        // Exportar datos a Excel
+        function exportToExcel() {
+            try {
+                console.log('Iniciando exportación a Excel...');
+                
+                if (imagePairs.length === 0) {
+                    showMessage('No hay datos para exportar.', 'warning');
+                    return;
+                }
+
+                // Crear datos para Excel
+                const excelData = [];
+                
+                // Encabezados
+                excelData.push([
+                    'Competencia',
+                    'Persona 1',
+                    'Imagen 1',
+                    'Votos Persona 1',
+                    'Persona 2', 
+                    'Imagen 2',
+                    'Votos Persona 2',
+                    'Total Votos',
+                    'Ganador',
+                    'Fecha Creación'
+                ]);
+                
+                // Datos de cada competencia
+                imagePairs.forEach(pair => {
+                    const pairId = pair.name;
+                    const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
+                    const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
+                    const totalVotes = (pairVotes.image1 || 0) + (pairVotes.image2 || 0);
+                    
+                    let winner = 'Empate';
+                    if (pairVotes.image1 > pairVotes.image2) {
+                        winner = names.person1;
+                    } else if (pairVotes.image2 > pairVotes.image1) {
+                        winner = names.person2;
+                    }
+                    
+                    const creationDate = pair.createdAt ? new Date(pair.createdAt).toLocaleDateString() : 'N/A';
+                    
+                    excelData.push([
+                        pair.name,
+                        names.person1,
+                        pair.image1.name || 'imagen1.jpg',
+                        pairVotes.image1 || 0,
+                        names.person2,
+                        pair.image2.name || 'imagen2.jpg', 
+                        pairVotes.image2 || 0,
+                        totalVotes,
+                        winner,
+                        creationDate
+                    ]);
+                });
+                
+                // Agregar resumen TOP 8
+                excelData.push([]);
+                excelData.push(['=== TOP 8 MÁS VOTADOS ===']);
+                excelData.push(['Posición', 'Nombre', 'Competencia', 'Votos']);
+                
+                // Calcular TOP 8
+                const allPersons = [];
+                imagePairs.forEach(pair => {
+                    const pairId = pair.name;
+                    const pairVotes = votes[pairId] || { image1: 0, image2: 0 };
+                    const names = personNames[pairId] || { person1: 'Persona 1', person2: 'Persona 2' };
+                    
+                    allPersons.push({
+                        name: names.person1,
+                        votes: pairVotes.image1 || 0,
+                        competition: pair.name
+                    });
+                    
+                    allPersons.push({
+                        name: names.person2,
+                        votes: pairVotes.image2 || 0,
+                        competition: pair.name
+                    });
+                });
+                
+                const top8 = allPersons.sort((a, b) => b.votes - a.votes).slice(0, 8);
+                top8.forEach((person, index) => {
+                    excelData.push([
+                        index + 1,
+                        person.name,
+                        person.competition,
+                        person.votes
+                    ]);
+                });
+                
+                // Convertir a CSV
+                const csvContent = excelData.map(row => 
+                    row.map(cell => `"${cell}"`).join(',')
+                ).join('\n');
+                
+                // Crear y descargar archivo
+                const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                
+                const now = new Date();
+                const filename = `Concurso_Votacion_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}-${now.getMinutes().toString().padStart(2,'0')}.csv`;
+                
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showMessage(`Datos exportados exitosamente: ${filename}`, 'success');
+                console.log('Exportación completada exitosamente');
+                
+            } catch (error) {
+                console.error('Error exportando a Excel:', error);
+                showMessage('Error al exportar datos: ' + error.message, 'error');
+            }
+        }
+
+        // Confirmar borrado completo
+        function confirmDeleteAll() {
+            const confirmMessage = `
+⚠️ CONFIRMACIÓN DE BORRADO COMPLETO ⚠️
+
+Esta acción eliminará PERMANENTEMENTE:
+• ${imagePairs.length} competencias
+• ${imagePairs.length * 2} personas
+• ${Object.keys(votes).reduce((sum, key) => sum + (votes[key].image1 || 0) + (votes[key].image2 || 0), 0)} votos
+• Todas las imágenes subidas
+
+¿Estás completamente seguro de que quieres BORRAR TODO?
+
+Escribe "BORRAR TODO" para confirmar:`;
+
+            const userInput = prompt(confirmMessage);
+            
+            if (userInput === "BORRAR TODO") {
+                deleteAllData();
+            } else if (userInput !== null) {
+                showMessage('Borrado cancelado. Texto de confirmación incorrecto.', 'warning');
+            }
+        }
+
+        // Borrar todos los datos
+        async function deleteAllData() {
+            try {
+                showMessage('Borrando todos los datos...', 'warning');
+                
+                const { ref, set } = window.firebaseRefs;
+                
+                // Borrar todas las tablas
+                await set(ref(window.database, 'imagePairs'), null);
+                await set(ref(window.database, 'votes'), null);
+                await set(ref(window.database, 'personNames'), null);
+                await set(ref(window.database, 'individualImages'), null);
+                
+                // Limpiar variables locales
+                imagePairs = [];
+                votes = {};
+                personNames = {};
+                
+                // Actualizar UI
+                displayImagePairs();
+                displayResults();
+                displayTop8();
+                displaySystemStats();
+                
+                showMessage('🗑️ TODOS LOS DATOS HAN SIDO ELIMINADOS. El sistema está listo para un nuevo concurso.', 'success');
+                console.log('Borrado completo exitoso');
+                
+            } catch (error) {
+                console.error('Error borrando datos:', error);
+                showMessage('Error al borrar datos: ' + error.message, 'error');
             }
         }
 
