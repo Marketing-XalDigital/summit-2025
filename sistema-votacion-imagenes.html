@@ -376,27 +376,25 @@
                 onValue(pairsRef, (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        // Convertir a array y ordenar por timestamp descendente (más nuevo primero)
-                        const pairsArray = Object.values(data);
-                        
-                        // Debug: ver los timestamps
-                        console.log('Datos antes de ordenar:', pairsArray.map(p => ({
-                            name: p.name,
-                            timestamp: p.timestamp,
-                            timestampType: typeof p.timestamp
-                        })));
+                        // Convertir a array y ordenar
+                        const pairsArray = Object.entries(data).map(([key, value]) => ({
+                            ...value,
+                            firebaseKey: key
+                        }));
                         
                         imagePairs = pairsArray.sort((a, b) => {
-                            // Convertir timestamps a números si vienen como string
-                            const timestampA = Number(a.timestamp) || 0;
-                            const timestampB = Number(b.timestamp) || 0;
-                            
-                            console.log(`Comparando: ${a.name} (${timestampA}) vs ${b.name} (${timestampB})`);
-                            return timestampB - timestampA; // Orden descendente (más nuevo primero)
+                            // Si tienen timestamp, usarlo (más nuevo primero)
+                            if (a.timestamp && b.timestamp) {
+                                return Number(b.timestamp) - Number(a.timestamp);
+                            }
+                            // Si no tienen timestamp, ordenar por la clave de Firebase (más reciente primero)
+                            // Firebase genera claves con timestamp interno, así que ordenamos alfabéticamente inverso
+                            return b.firebaseKey.localeCompare(a.firebaseKey);
                         });
                         
                         console.log('Orden final:', imagePairs.map(p => ({
                             name: p.name,
+                            firebaseKey: p.firebaseKey,
                             timestamp: p.timestamp
                         })));
                         
