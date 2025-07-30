@@ -47,6 +47,8 @@
             background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
             min-height: 100vh;
             color: #000;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
@@ -66,125 +68,6 @@
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
             font-weight: 700;
-        }
-
-        /* Login Styles */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 70vh;
-            padding: 20px;
-        }
-
-        .login-box {
-            background: rgba(255,255,255,0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            backdrop-filter: blur(10px);
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .login-box h2 {
-            margin-bottom: 30px;
-            font-weight: 600;
-            color: #dc770e;
-            font-size: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 16px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 12px;
-            font-size: 16px;
-            font-family: 'Dosis', sans-serif;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #dc770e;
-            box-shadow: 0 0 0 3px rgba(220, 119, 14, 0.1);
-        }
-
-        .login-btn {
-            background: #dc770e;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-
-        .login-btn:hover {
-            background: #b8630c;
-            transform: translateY(-2px);
-        }
-
-        .back-link {
-            display: block;
-            margin-top: 20px;
-            color: #666;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .back-link:hover {
-            color: #dc770e;
-        }
-
-        /* Admin Panel Styles */
-        .admin-panel {
-            display: none;
-        }
-
-        .user-info {
-            background: rgba(255,255,255,0.9);
-            padding: 15px 25px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .logout-btn {
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: 'Dosis', sans-serif;
-            margin-left: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: #cc3333;
         }
 
         .nav-buttons {
@@ -447,36 +330,6 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Login Screen -->
-        <div id="login-screen">
-            <div class="header">
-                <h1>👑 Panel de Administración</h1>
-                <p>Gestión del sistema de votación</p>
-            </div>
-            
-            <div class="login-container">
-                <div class="login-box">
-                    <h2>Acceso de Administrador</h2>
-                    
-                    <div class="form-group">
-                        <label for="username">Usuario:</label>
-                        <input type="text" id="username" class="form-input" placeholder="Ingresa tu usuario" autocomplete="username">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Contraseña:</label>
-                        <input type="password" id="password" class="form-input" placeholder="Ingresa tu contraseña" autocomplete="current-password">
-                    </div>
-                    
-                    <button class="login-btn" type="button" id="loginButton">
-                        🔐 Iniciar Sesión
-                    </button>
-                    
-                    <a href="sistema-votacion-imagenes.html" class="back-link">← Volver a la votación</a>
-                </div>
-            </div>
-        </div>
 
         <!-- Admin Panel -->
         <div id="admin-panel" class="admin-panel">
