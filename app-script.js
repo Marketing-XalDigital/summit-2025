@@ -209,14 +209,20 @@ class SlotMachineApp {
     }
 
     exportToExcel() {
+        console.log('Iniciando exportación...');
+        
         // Verificar si XLSX está disponible
+        console.log('Verificando XLSX:', typeof XLSX);
         if (typeof XLSX === 'undefined') {
+            console.error('XLSX no está disponible');
             alert('Error: La librería de Excel no se pudo cargar. Por favor, recarga la página e intenta de nuevo.');
             return;
         }
 
         const competidores = JSON.parse(localStorage.getItem('competidores')) || [];
         const jugadas = JSON.parse(localStorage.getItem('jugadas')) || [];
+        
+        console.log('Datos obtenidos - Competidores:', competidores.length, 'Jugadas:', jugadas.length);
         
         // Verificar si hay datos para exportar
         if (competidores.length === 0 && jugadas.length === 0) {
@@ -225,38 +231,53 @@ class SlotMachineApp {
         }
         
         try {
+            console.log('Creando workbook...');
             const workbook = XLSX.utils.book_new();
             
             // Hoja Competidores
+            console.log('Preparando datos de competidores...');
             const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Fecha/Hora Registro', 'ID Competencia']];
-            competidores.forEach(c => competidoresData.push([
-                c.competidor1.nombre, 
-                c.competidor1.email, 
-                c.competidor1.telefono, 
-                c.competidor2.nombre, 
-                c.competidor2.email, 
-                c.competidor2.telefono, 
-                c.fechaRegistro,
-                c.competenciaId
-            ]));
+            
+            competidores.forEach((c, index) => {
+                console.log(`Procesando competidor ${index + 1}:`, c);
+                competidoresData.push([
+                    c.competidor1?.nombre || '', 
+                    c.competidor1?.email || '', 
+                    c.competidor1?.telefono || '', 
+                    c.competidor2?.nombre || '', 
+                    c.competidor2?.email || '', 
+                    c.competidor2?.telefono || '', 
+                    c.fechaRegistro || '',
+                    c.competenciaId || ''
+                ]);
+            });
+            
+            console.log('Creando hoja de competidores...');
             const competidoresWS = XLSX.utils.aoa_to_sheet(competidoresData);
             XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
             
             // Hoja Jugadas
+            console.log('Preparando datos de jugadas...');
             const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
-            jugadas.forEach(j => jugadasData.push([
-                j.competidor1.nombre, 
-                j.competidor1.email, 
-                j.competidor1.telefono, 
-                j.competidor2.nombre, 
-                j.competidor2.email, 
-                j.competidor2.telefono, 
-                j.resultado1, 
-                j.resultado2, 
-                j.resultado3, 
-                j.fechaJugada,
-                j.competenciaId
-            ]));
+            
+            jugadas.forEach((j, index) => {
+                console.log(`Procesando jugada ${index + 1}:`, j);
+                jugadasData.push([
+                    j.competidor1?.nombre || '', 
+                    j.competidor1?.email || '', 
+                    j.competidor1?.telefono || '', 
+                    j.competidor2?.nombre || '', 
+                    j.competidor2?.email || '', 
+                    j.competidor2?.telefono || '', 
+                    j.resultado1 || '', 
+                    j.resultado2 || '', 
+                    j.resultado3 || '', 
+                    j.fechaJugada || '',
+                    j.competenciaId || ''
+                ]);
+            });
+            
+            console.log('Creando hoja de jugadas...');
             const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasData);
             XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
             
@@ -265,13 +286,66 @@ class SlotMachineApp {
             const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
             const filename = `tragamonedas_competidores_${timestamp}.xlsx`;
             
+            console.log('Escribiendo archivo:', filename);
             XLSX.writeFile(workbook, filename);
             
             console.log('Excel exportado exitosamente:', filename);
+            alert('Excel exportado exitosamente: ' + filename);
             
         } catch (error) {
-            console.error('Error al exportar Excel:', error);
-            alert('Error al exportar el archivo Excel. Revisa la consola para más detalles.');
+            console.error('Error detallado al exportar Excel:', error);
+            console.error('Stack trace:', error.stack);
+            
+            // Fallback: exportar como CSV
+            this.exportAsCSV();
+        }
+    }
+
+    exportAsCSV() {
+        console.log('Iniciando exportación de respaldo como CSV...');
+        
+        try {
+            const competidores = JSON.parse(localStorage.getItem('competidores')) || [];
+            const jugadas = JSON.parse(localStorage.getItem('jugadas')) || [];
+            
+            let csvContent = '';
+            
+            // CSV de Competidores
+            csvContent += 'COMPETIDORES\n';
+            csvContent += 'Competidor 1 - Nombre,Competidor 1 - Email,Competidor 1 - Teléfono,Competidor 2 - Nombre,Competidor 2 - Email,Competidor 2 - Teléfono,Fecha/Hora Registro,ID Competencia\n';
+            
+            competidores.forEach(c => {
+                csvContent += `"${c.competidor1?.nombre || ''}","${c.competidor1?.email || ''}","${c.competidor1?.telefono || ''}","${c.competidor2?.nombre || ''}","${c.competidor2?.email || ''}","${c.competidor2?.telefono || ''}","${c.fechaRegistro || '"}","${c.competenciaId || '"}"\n`;
+            });
+            
+            csvContent += '\nJUGADAS\n';
+            csvContent += 'Competidor 1 - Nombre,Competidor 1 - Email,Competidor 1 - Teléfono,Competidor 2 - Nombre,Competidor 2 - Email,Competidor 2 - Teléfono,Resultado 1,Resultado 2,Resultado 3,Fecha/Hora Jugada,ID Competencia\n';
+            
+            jugadas.forEach(j => {
+                csvContent += `"${j.competidor1?.nombre || ''}","${j.competidor1?.email || ''}","${j.competidor1?.telefono || ''}","${j.competidor2?.nombre || ''}","${j.competidor2?.email || ''}","${j.competidor2?.telefono || ''}","${j.resultado1 || ''}","${j.resultado2 || ''}","${j.resultado3 || ''}","${j.fechaJugada || '"}","${j.competenciaId || '"}"\n`;
+            });
+            
+            // Crear y descargar el archivo CSV
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            link.setAttribute('download', `tragamonedas_competidores_${timestamp}.csv`);
+            
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            console.log('CSV exportado exitosamente como respaldo');
+            alert('Se exportó como CSV debido a un problema con Excel. El archivo contiene toda la información.');
+            
+        } catch (csvError) {
+            console.error('Error al exportar CSV de respaldo:', csvError);
+            alert('Error al exportar los datos. Por favor, contacta al administrador.');
         }
     }
     
