@@ -376,7 +376,7 @@
                 onValue(pairsRef, (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        // Convertir a array y ordenar
+                        // Convertir a array y ordenar por timestamp descendente (más nuevo primero)
                         const pairsArray = Object.entries(data).map(([key, value]) => ({
                             ...value,
                             firebaseKey: key
@@ -387,15 +387,18 @@
                             if (a.timestamp && b.timestamp) {
                                 return Number(b.timestamp) - Number(a.timestamp);
                             }
-                            // Si no tienen timestamp, ordenar por la clave de Firebase (más reciente primero)
-                            // Firebase genera claves con timestamp interno, así que ordenamos alfabéticamente inverso
+                            // Si solo uno tiene timestamp, ese va primero
+                            if (a.timestamp && !b.timestamp) return -1;
+                            if (!a.timestamp && b.timestamp) return 1;
+                            // Si ninguno tiene timestamp, ordenar por clave de Firebase (más reciente primero)
                             return b.firebaseKey.localeCompare(a.firebaseKey);
                         });
                         
                         console.log('Orden final:', imagePairs.map(p => ({
                             name: p.name,
                             firebaseKey: p.firebaseKey,
-                            timestamp: p.timestamp
+                            timestamp: p.timestamp,
+                            hasTimestamp: !!p.timestamp
                         })));
                         
                         setupVoting();
