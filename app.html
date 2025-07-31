@@ -25,6 +25,12 @@
                         <label for="email1">Correo Electrónico:</label>
                         <input type="email" id="email1" name="email1" autocomplete="off" required>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="telefono1">Número de Teléfono:</label>
+                        <input type="tel" id="telefono1" name="telefono1" autocomplete="off" pattern="[0-9]{10}" maxlength="10" placeholder="1234567890" required>
+                        <small class="help-text">Ingresa 10 dígitos sin espacios ni guiones</small>
+                    </div>
                 </div>
 
                 <div class="competitors-section">
@@ -37,6 +43,12 @@
                     <div class="form-group">
                         <label for="email2">Correo Electrónico:</label>
                         <input type="email" id="email2" name="email2" autocomplete="off" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telefono2">Número de Teléfono:</label>
+                        <input type="tel" id="telefono2" name="telefono2" autocomplete="off" pattern="[0-9]{10}" maxlength="10" placeholder="1234567890" required>
+                        <small class="help-text">Ingresa 10 dígitos sin espacios ni guiones</small>
                     </div>
                 </div>
                 
@@ -118,6 +130,38 @@
         </div>
     </div>
 
+    <script>
+        // Función para permitir solo números en los campos de teléfono
+        function setupPhoneValidation() {
+            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+            
+            phoneInputs.forEach(input => {
+                input.addEventListener('input', function(e) {
+                    // Remover cualquier carácter que no sea número
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    
+                    // Limitar a 10 dígitos
+                    if (this.value.length > 10) {
+                        this.value = this.value.slice(0, 10);
+                    }
+                });
+                
+                // Validación adicional en tiempo real
+                input.addEventListener('blur', function(e) {
+                    if (this.value.length !== 10 && this.value.length > 0) {
+                        this.setCustomValidity('El número de teléfono debe tener exactamente 10 dígitos');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            });
+        }
+        
+        // Inicializar validación cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            setupPhoneValidation();
+        });
+    </script>
     <script src="app-script.js"></script>
 </body>
 </html>
