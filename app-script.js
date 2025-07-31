@@ -162,10 +162,12 @@ class SlotMachineApp {
 
     addCompetitorsToStorage(competitor1, competitor2) {
         const now = new Date().toLocaleString('es-ES');
-        const competidores = JSON.parse(localStorage.getItem('competidores'));
+        const competidores = JSON.parse(localStorage.getItem('competidores')) || [];
+        
+        const competenciaId = Date.now();
         
         // Agregar entrada de competencia con ambos competidores
-        competidores.push({
+        const nuevaCompetencia = {
             competidor1: {
                 nombre: competitor1.nombre,
                 email: competitor1.email,
@@ -177,17 +179,23 @@ class SlotMachineApp {
                 telefono: competitor2.telefono
             },
             fechaRegistro: now,
-            competenciaId: Date.now() // ID único para la competencia
-        });
+            competenciaId: competenciaId
+        };
         
+        competidores.push(nuevaCompetencia);
         localStorage.setItem('competidores', JSON.stringify(competidores));
+        
+        // Guardar el ID en currentCompetitors para usarlo después
+        this.currentCompetitors.competenciaId = competenciaId;
+        
+        console.log('Competidores guardados:', nuevaCompetencia);
     }
 
     addGameToStorage(resultado1, resultado2, resultado3) {
         const now = new Date().toLocaleString('es-ES');
-        const jugadas = JSON.parse(localStorage.getItem('jugadas'));
+        const jugadas = JSON.parse(localStorage.getItem('jugadas')) || [];
         
-        jugadas.push({
+        const nuevaJugada = {
             competidor1: {
                 nombre: this.currentCompetitors.competitor1.nombre,
                 email: this.currentCompetitors.competitor1.email,
@@ -203,9 +211,12 @@ class SlotMachineApp {
             resultado3,
             fechaJugada: now,
             competenciaId: this.currentCompetitors.competenciaId || Date.now()
-        });
+        };
         
+        jugadas.push(nuevaJugada);
         localStorage.setItem('jugadas', JSON.stringify(jugadas));
+        
+        console.log('Jugada guardada:', nuevaJugada);
     }
 
     exportToExcel() {
@@ -222,7 +233,9 @@ class SlotMachineApp {
         const competidores = JSON.parse(localStorage.getItem('competidores')) || [];
         const jugadas = JSON.parse(localStorage.getItem('jugadas')) || [];
         
-        console.log('Datos obtenidos - Competidores:', competidores.length, 'Jugadas:', jugadas.length);
+        console.log('Datos obtenidos:');
+        console.log('- Competidores:', competidores);
+        console.log('- Jugadas:', jugadas);
         
         // Verificar si hay datos para exportar
         if (competidores.length === 0 && jugadas.length === 0) {
@@ -240,18 +253,26 @@ class SlotMachineApp {
             
             competidores.forEach((c, index) => {
                 console.log(`Procesando competidor ${index + 1}:`, c);
+                
+                // Verificar estructura de datos
+                if (!c.competidor1 || !c.competidor2) {
+                    console.warn(`Estructura de datos incorrecta en competidor ${index + 1}:`, c);
+                    return; // Saltar este registro
+                }
+                
                 competidoresData.push([
-                    c.competidor1?.nombre || '', 
-                    c.competidor1?.email || '', 
-                    c.competidor1?.telefono || '', 
-                    c.competidor2?.nombre || '', 
-                    c.competidor2?.email || '', 
-                    c.competidor2?.telefono || '', 
+                    c.competidor1.nombre || '', 
+                    c.competidor1.email || '', 
+                    c.competidor1.telefono || '', 
+                    c.competidor2.nombre || '', 
+                    c.competidor2.email || '', 
+                    c.competidor2.telefono || '', 
                     c.fechaRegistro || '',
                     c.competenciaId || ''
                 ]);
             });
             
+            console.log('Datos finales de competidores:', competidoresData);
             console.log('Creando hoja de competidores...');
             const competidoresWS = XLSX.utils.aoa_to_sheet(competidoresData);
             XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
@@ -262,13 +283,20 @@ class SlotMachineApp {
             
             jugadas.forEach((j, index) => {
                 console.log(`Procesando jugada ${index + 1}:`, j);
+                
+                // Verificar estructura de datos
+                if (!j.competidor1 || !j.competidor2) {
+                    console.warn(`Estructura de datos incorrecta en jugada ${index + 1}:`, j);
+                    return; // Saltar este registro
+                }
+                
                 jugadasData.push([
-                    j.competidor1?.nombre || '', 
-                    j.competidor1?.email || '', 
-                    j.competidor1?.telefono || '', 
-                    j.competidor2?.nombre || '', 
-                    j.competidor2?.email || '', 
-                    j.competidor2?.telefono || '', 
+                    j.competidor1.nombre || '', 
+                    j.competidor1.email || '', 
+                    j.competidor1.telefono || '', 
+                    j.competidor2.nombre || '', 
+                    j.competidor2.email || '', 
+                    j.competidor2.telefono || '', 
                     j.resultado1 || '', 
                     j.resultado2 || '', 
                     j.resultado3 || '', 
@@ -277,6 +305,7 @@ class SlotMachineApp {
                 ]);
             });
             
+            console.log('Datos finales de jugadas:', jugadasData);
             console.log('Creando hoja de jugadas...');
             const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasData);
             XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
