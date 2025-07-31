@@ -209,45 +209,70 @@ class SlotMachineApp {
     }
 
     exportToExcel() {
-        const competidores = JSON.parse(localStorage.getItem('competidores'));
-        const jugadas = JSON.parse(localStorage.getItem('jugadas'));
+        // Verificar si XLSX está disponible
+        if (typeof XLSX === 'undefined') {
+            alert('Error: La librería de Excel no se pudo cargar. Por favor, recarga la página e intenta de nuevo.');
+            return;
+        }
+
+        const competidores = JSON.parse(localStorage.getItem('competidores')) || [];
+        const jugadas = JSON.parse(localStorage.getItem('jugadas')) || [];
         
-        const workbook = XLSX.utils.book_new();
+        // Verificar si hay datos para exportar
+        if (competidores.length === 0 && jugadas.length === 0) {
+            alert('No hay datos para exportar. Registra algunos competidores y juega primero.');
+            return;
+        }
         
-        // Hoja Competidores
-        const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Fecha/Hora Registro', 'ID Competencia']];
-        competidores.forEach(c => competidoresData.push([
-            c.competidor1.nombre, 
-            c.competidor1.email, 
-            c.competidor1.telefono, 
-            c.competidor2.nombre, 
-            c.competidor2.email, 
-            c.competidor2.telefono, 
-            c.fechaRegistro,
-            c.competenciaId
-        ]));
-        const competidoresWS = XLSX.utils.aoa_to_sheet(competidoresData);
-        XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
-        
-        // Hoja Jugadas
-        const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
-        jugadas.forEach(j => jugadasData.push([
-            j.competidor1.nombre, 
-            j.competidor1.email, 
-            j.competidor1.telefono, 
-            j.competidor2.nombre, 
-            j.competidor2.email, 
-            j.competidor2.telefono, 
-            j.resultado1, 
-            j.resultado2, 
-            j.resultado3, 
-            j.fechaJugada,
-            j.competenciaId
-        ]));
-        const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasData);
-        XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
-        
-        XLSX.writeFile(workbook, 'tragamonedas_competidores.xlsx');
+        try {
+            const workbook = XLSX.utils.book_new();
+            
+            // Hoja Competidores
+            const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Fecha/Hora Registro', 'ID Competencia']];
+            competidores.forEach(c => competidoresData.push([
+                c.competidor1.nombre, 
+                c.competidor1.email, 
+                c.competidor1.telefono, 
+                c.competidor2.nombre, 
+                c.competidor2.email, 
+                c.competidor2.telefono, 
+                c.fechaRegistro,
+                c.competenciaId
+            ]));
+            const competidoresWS = XLSX.utils.aoa_to_sheet(competidoresData);
+            XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
+            
+            // Hoja Jugadas
+            const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
+            jugadas.forEach(j => jugadasData.push([
+                j.competidor1.nombre, 
+                j.competidor1.email, 
+                j.competidor1.telefono, 
+                j.competidor2.nombre, 
+                j.competidor2.email, 
+                j.competidor2.telefono, 
+                j.resultado1, 
+                j.resultado2, 
+                j.resultado3, 
+                j.fechaJugada,
+                j.competenciaId
+            ]));
+            const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasData);
+            XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
+            
+            // Generar nombre de archivo con timestamp
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            const filename = `tragamonedas_competidores_${timestamp}.xlsx`;
+            
+            XLSX.writeFile(workbook, filename);
+            
+            console.log('Excel exportado exitosamente:', filename);
+            
+        } catch (error) {
+            console.error('Error al exportar Excel:', error);
+            alert('Error al exportar el archivo Excel. Revisa la consola para más detalles.');
+        }
     }
     
     clearAllData() {
