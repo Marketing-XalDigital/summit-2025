@@ -252,11 +252,11 @@ class SlotMachineApp {
             const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Fecha/Hora Registro', 'ID Competencia']];
             
             competidores.forEach((c, index) => {
-                console.log(`Procesando competidor ${index + 1}:`, c);
+                console.log('Procesando competidor ' + (index + 1) + ':', c);
                 
                 // Verificar estructura de datos
                 if (!c.competidor1 || !c.competidor2) {
-                    console.warn(`Estructura de datos incorrecta en competidor ${index + 1}:`, c);
+                    console.warn('Estructura de datos incorrecta en competidor ' + (index + 1) + ':', c);
                     return; // Saltar este registro
                 }
                 
@@ -282,11 +282,11 @@ class SlotMachineApp {
             const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
             
             jugadas.forEach((j, index) => {
-                console.log(`Procesando jugada ${index + 1}:`, j);
+                console.log('Procesando jugada ' + (index + 1) + ':', j);
                 
                 // Verificar estructura de datos
                 if (!j.competidor1 || !j.competidor2) {
-                    console.warn(`Estructura de datos incorrecta en jugada ${index + 1}:`, j);
+                    console.warn('Estructura de datos incorrecta en jugada ' + (index + 1) + ':', j);
                     return; // Saltar este registro
                 }
                 
@@ -313,7 +313,7 @@ class SlotMachineApp {
             // Generar nombre de archivo con timestamp
             const now = new Date();
             const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
-            const filename = `tragamonedas_competidores_${timestamp}.xlsx`;
+            const filename = 'tragamonedas_competidores_' + timestamp + '.xlsx';
             
             console.log('Escribiendo archivo:', filename);
             XLSX.writeFile(workbook, filename);
@@ -344,14 +344,27 @@ class SlotMachineApp {
             csvContent += 'Competidor 1 - Nombre,Competidor 1 - Email,Competidor 1 - Teléfono,Competidor 2 - Nombre,Competidor 2 - Email,Competidor 2 - Teléfono,Fecha/Hora Registro,ID Competencia\n';
             
             competidores.forEach(c => {
-                csvContent += `"${c.competidor1?.nombre || ''}","${c.competidor1?.email || ''}","${c.competidor1?.telefono || ''}","${c.competidor2?.nombre || ''}","${c.competidor2?.email || ''}","${c.competidor2?.telefono || ''}","${c.fechaRegistro || '"}","${c.competenciaId || '"}"\n`;
+                csvContent += '"' + (c.competidor1 && c.competidor1.nombre ? c.competidor1.nombre : '') + '","' + 
+                             (c.competidor1 && c.competidor1.email ? c.competidor1.email : '') + '","' + 
+                             (c.competidor1 && c.competidor1.telefono ? c.competidor1.telefono : '') + '","' + 
+                             (c.competidor2 && c.competidor2.nombre ? c.competidor2.nombre : '') + '","' + 
+                             (c.competidor2 && c.competidor2.email ? c.competidor2.email : '') + '","' + 
+                             (c.competidor2 && c.competidor2.telefono ? c.competidor2.telefono : '') + '","' + 
+                             (c.fechaRegistro || '') + '","' + (c.competenciaId || '') + '"\n';
             });
             
             csvContent += '\nJUGADAS\n';
             csvContent += 'Competidor 1 - Nombre,Competidor 1 - Email,Competidor 1 - Teléfono,Competidor 2 - Nombre,Competidor 2 - Email,Competidor 2 - Teléfono,Resultado 1,Resultado 2,Resultado 3,Fecha/Hora Jugada,ID Competencia\n';
             
             jugadas.forEach(j => {
-                csvContent += `"${j.competidor1?.nombre || ''}","${j.competidor1?.email || ''}","${j.competidor1?.telefono || ''}","${j.competidor2?.nombre || ''}","${j.competidor2?.email || ''}","${j.competidor2?.telefono || ''}","${j.resultado1 || ''}","${j.resultado2 || ''}","${j.resultado3 || ''}","${j.fechaJugada || '"}","${j.competenciaId || '"}"\n`;
+                csvContent += '"' + (j.competidor1 && j.competidor1.nombre ? j.competidor1.nombre : '') + '","' + 
+                             (j.competidor1 && j.competidor1.email ? j.competidor1.email : '') + '","' + 
+                             (j.competidor1 && j.competidor1.telefono ? j.competidor1.telefono : '') + '","' + 
+                             (j.competidor2 && j.competidor2.nombre ? j.competidor2.nombre : '') + '","' + 
+                             (j.competidor2 && j.competidor2.email ? j.competidor2.email : '') + '","' + 
+                             (j.competidor2 && j.competidor2.telefono ? j.competidor2.telefono : '') + '","' + 
+                             (j.resultado1 || '') + '","' + (j.resultado2 || '') + '","' + (j.resultado3 || '') + '","' + 
+                             (j.fechaJugada || '') + '","' + (j.competenciaId || '') + '"\n';
             });
             
             // Crear y descargar el archivo CSV
@@ -362,7 +375,7 @@ class SlotMachineApp {
             
             const now = new Date();
             const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
-            link.setAttribute('download', `tragamonedas_competidores_${timestamp}.csv`);
+            link.setAttribute('download', 'tragamonedas_competidores_' + timestamp + '.csv');
             
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
