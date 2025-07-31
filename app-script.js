@@ -63,7 +63,7 @@ class SlotMachineApp {
             // Validación adicional en tiempo real
             input.addEventListener('blur', function(e) {
                 if (this.value.length !== 10 && this.value.length > 0) {
-                    this.setCustomValidity('El número de teléfono debe tener exactamente 10 dígitos');
+                    this.setCustomValidity('El número de teléfono debe tener exactamente 10 dígitos.');
                 } else {
                     this.setCustomValidity('');
                 }
