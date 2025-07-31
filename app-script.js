@@ -9,6 +9,7 @@ class SlotMachineApp {
         this.loadTexts();
         this.setupEventListeners();
         this.initializeStorage();
+        this.setupPhoneValidation();
     }
 
     initializeElements() {
@@ -45,6 +46,31 @@ class SlotMachineApp {
         this.spinBtn.addEventListener('click', () => this.handleSpin());
     }
 
+    setupPhoneValidation() {
+        const phoneInputs = document.querySelectorAll('input[type="tel"]');
+        
+        phoneInputs.forEach(input => {
+            input.addEventListener('input', function(e) {
+                // Remover cualquier carácter que no sea número
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Limitar a 10 dígitos
+                if (this.value.length > 10) {
+                    this.value = this.value.slice(0, 10);
+                }
+            });
+            
+            // Validación adicional en tiempo real
+            input.addEventListener('blur', function(e) {
+                if (this.value.length !== 10 && this.value.length > 0) {
+                    this.setCustomValidity('El número de teléfono debe tener exactamente 10 dígitos');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        });
+    }
+
     initializeStorage() {
         if (!localStorage.getItem('competidores')) {
             localStorage.setItem('competidores', JSON.stringify([]));
@@ -59,21 +85,30 @@ class SlotMachineApp {
         return re.test(email);
     }
 
+    validatePhone(phone) {
+        // Validar que sea exactamente 10 dígitos
+        const phoneRegex = /^[0-9]{10}$/;
+        return phoneRegex.test(phone);
+    }
+
     handleRegistration(e) {
         e.preventDefault();
         
         const competitor1 = {
             nombre: document.getElementById('nombre1').value.trim(),
-            email: document.getElementById('email1').value.trim()
+            email: document.getElementById('email1').value.trim(),
+            telefono: document.getElementById('telefono1').value.trim()
         };
         
         const competitor2 = {
             nombre: document.getElementById('nombre2').value.trim(),
-            email: document.getElementById('email2').value.trim()
+            email: document.getElementById('email2').value.trim(),
+            telefono: document.getElementById('telefono2').value.trim()
         };
         
         // Validar que todos los campos estén completos
-        if (!competitor1.nombre || !competitor1.email || !competitor2.nombre || !competitor2.email) {
+        if (!competitor1.nombre || !competitor1.email || !competitor1.telefono || 
+            !competitor2.nombre || !competitor2.email || !competitor2.telefono) {
             alert('Por favor, completa todos los campos para ambos competidores');
             return;
         }
@@ -89,9 +124,26 @@ class SlotMachineApp {
             return;
         }
         
+        // Validar teléfonos
+        if (!this.validatePhone(competitor1.telefono)) {
+            alert('Por favor, ingresa un número de teléfono válido de 10 dígitos para el Competidor 1');
+            return;
+        }
+        
+        if (!this.validatePhone(competitor2.telefono)) {
+            alert('Por favor, ingresa un número de teléfono válido de 10 dígitos para el Competidor 2');
+            return;
+        }
+        
         // Validar que no sean el mismo email
         if (competitor1.email === competitor2.email) {
             alert('Los competidores deben tener correos electrónicos diferentes');
+            return;
+        }
+        
+        // Validar que no sean el mismo teléfono
+        if (competitor1.telefono === competitor2.telefono) {
+            alert('Los competidores deben tener números de teléfono diferentes');
             return;
         }
         
@@ -116,11 +168,13 @@ class SlotMachineApp {
         competidores.push({
             competidor1: {
                 nombre: competitor1.nombre,
-                email: competitor1.email
+                email: competitor1.email,
+                telefono: competitor1.telefono
             },
             competidor2: {
                 nombre: competitor2.nombre,
-                email: competitor2.email
+                email: competitor2.email,
+                telefono: competitor2.telefono
             },
             fechaRegistro: now,
             competenciaId: Date.now() // ID único para la competencia
@@ -136,11 +190,13 @@ class SlotMachineApp {
         jugadas.push({
             competidor1: {
                 nombre: this.currentCompetitors.competitor1.nombre,
-                email: this.currentCompetitors.competitor1.email
+                email: this.currentCompetitors.competitor1.email,
+                telefono: this.currentCompetitors.competitor1.telefono
             },
             competidor2: {
                 nombre: this.currentCompetitors.competitor2.nombre,
-                email: this.currentCompetitors.competitor2.email
+                email: this.currentCompetitors.competitor2.email,
+                telefono: this.currentCompetitors.competitor2.telefono
             },
             resultado1,
             resultado2,
@@ -159,12 +215,14 @@ class SlotMachineApp {
         const workbook = XLSX.utils.book_new();
         
         // Hoja Competidores
-        const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Fecha/Hora Registro', 'ID Competencia']];
+        const competidoresData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Fecha/Hora Registro', 'ID Competencia']];
         competidores.forEach(c => competidoresData.push([
             c.competidor1.nombre, 
             c.competidor1.email, 
+            c.competidor1.telefono, 
             c.competidor2.nombre, 
             c.competidor2.email, 
+            c.competidor2.telefono, 
             c.fechaRegistro,
             c.competenciaId
         ]));
@@ -172,12 +230,14 @@ class SlotMachineApp {
         XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
         
         // Hoja Jugadas
-        const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
+        const jugadasData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
         jugadas.forEach(j => jugadasData.push([
             j.competidor1.nombre, 
             j.competidor1.email, 
+            j.competidor1.telefono, 
             j.competidor2.nombre, 
             j.competidor2.email, 
+            j.competidor2.telefono, 
             j.resultado1, 
             j.resultado2, 
             j.resultado3, 
