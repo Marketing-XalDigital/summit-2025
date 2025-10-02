@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🗳️ Votación de Imágenes</title>
+    <title>Votación de Imágenes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * {
             margin: 0;
@@ -13,191 +15,299 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Dosis', sans-serif;
+            background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #000;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            touch-action: manipulation;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 800px;
             margin: 0 auto;
+            padding: 10px;
         }
 
-        h1 {
+        .header {
             text-align: center;
-            color: white;
+            color: #000;
             margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            padding: 20px 10px;
         }
 
-        .voting-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+        .header h1 {
+            font-size: clamp(2em, 6vw, 3em);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
+            font-weight: 700;
         }
 
-        .person-card {
+        .voting-container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .voting-pair {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .voting-pair h3 {
+            margin-bottom: 15px;
+            color: #000;
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 600;
+        }
+
+        .voting-pair p {
+            font-size: clamp(14px, 3vw, 16px);
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .images-comparison {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .vote-option {
             background: white;
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease;
-        }
-
-        .person-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .person-name {
-            text-align: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-
-        .images-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .image-option {
-            position: relative;
-            cursor: pointer;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 3px solid transparent;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
-        }
-
-        .image-option:hover {
-            border-color: #667eea;
-            transform: scale(1.05);
-        }
-
-        .image-option img {
+            cursor: pointer;
+            border: 3px solid transparent;
             width: 100%;
-            height: 200px;
+            max-width: 350px;
+        }
+
+        .vote-option:hover, .vote-option:active {
+            transform: translateY(-3px);
+            border-color: #dc770e;
+            box-shadow: 0 8px 25px rgba(220, 119, 14, 0.25);
+        }
+
+        .vote-option img {
+            width: 100%;
+            max-width: 280px;
+            height: 280px;
             object-fit: cover;
-            display: block;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .vote-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(102, 126, 234, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+        .vote-option h4 {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #dc770e;
+            font-size: clamp(18px, 4vw, 24px);
+        }
+
+        .vote-btn {
+            background: #dc770e;
             color: white;
-            font-size: 1.2em;
-            font-weight: bold;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(16px, 4vw, 20px);
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+            width: 100%;
+            min-height: 60px;
+            touch-action: manipulation;
         }
 
-        .image-option:hover .vote-overlay {
-            opacity: 1;
+        .vote-btn:hover, .vote-btn:active {
+            background: #b8630c;
+            transform: scale(1.02);
         }
 
-        .vote-count {
+        .vote-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .navigation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            padding: 0 10px;
+        }
+
+        .nav-control {
+            background: #fbd21d;
+            color: #000;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: clamp(16px, 4vw, 18px);
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
+            min-height: 50px;
+            min-width: 120px;
+            touch-action: manipulation;
+        }
+
+        .nav-control:hover, .nav-control:active {
+            background: #e6bd0a;
+            transform: translateY(-2px);
+        }
+
+        .nav-control:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #pairCounter {
+            font-weight: 600;
+            font-size: clamp(18px, 5vw, 22px);
+            color: #000;
             text-align: center;
+            min-width: 140px;
             padding: 10px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            font-size: 0.9em;
-            color: #555;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
         }
 
-        .vote-count strong {
-            color: #667eea;
-            font-size: 1.2em;
+        .status-message {
+            text-align: center;
+            padding: 20px;
+            margin: 15px 10px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            font-size: clamp(16px, 4vw, 18px);
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #fbd21d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
         }
 
         .loading {
             text-align: center;
-            color: white;
-            font-size: 1.5em;
-            padding: 50px;
+            padding: 30px;
+            color: #666;
+            font-size: clamp(18px, 5vw, 22px);
         }
 
-        .no-data {
-            text-align: center;
-            color: white;
-            font-size: 1.2em;
-            padding: 50px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-        }
-
-        .admin-link {
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .admin-link a {
-            display: inline-block;
-            padding: 15px 30px;
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        .admin-link a:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #4CAF50;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: none;
-            z-index: 1000;
-        }
-
-        .toast.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .images-comparison {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
             }
-            to {
-                transform: translateX(0);
+
+            .vote-option {
+                max-width: 300px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .images-comparison {
+                flex-direction: row;
+                justify-content: center;
+            }
+
+            .vote-option {
+                max-width: 320px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 5px;
+            }
+
+            .header {
+                padding: 15px 5px;
+            }
+
+            .voting-container {
+                margin: 0 5px;
+                padding: 15px;
+            }
+
+            .voting-pair {
+                padding: 15px;
+            }
+
+            .vote-option img {
+                height: 220px;
+            }
+
+            .navigation-controls {
+                gap: 10px;
+            }
+
+            .nav-control {
+                padding: 12px 20px;
+                min-width: 100px;
+            }
+
+            #pairCounter {
+                width: 100%;
+                order: -1;
+                margin-bottom: 15px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🗳️ ¡Vota por tu imagen favorita!</h1>
-        <div id="votingArea" class="voting-grid"></div>
-        <div class="admin-link">
-            <a href="admin.html">👑 Ir al Panel de Administración</a>
+        <div class="header">
+            <h1>¡Vota por tu imagen favorita!</h1>
+        </div>
+
+        <div class="voting-container">
+            <div id="votingContent">
+                <div class="loading">Cargando imágenes disponibles...</div>
+            </div>
+            
+            <div class="navigation-controls">
+                <button class="nav-control" id="prevBtn" onclick="previousPair()">⬅️ Anterior</button>
+                <div id="pairCounter">Cargando...</div>
+                <button class="nav-control" id="nextBtn" onclick="nextPair()">Siguiente ➡️</button>
+            </div>
         </div>
     </div>
-
-    <div id="toast" class="toast"></div>
 
     <script>
         // Configuración de Supabase
@@ -207,80 +317,153 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let persons = [];
+        let currentPairIndex = 0;
+        let userIP = null;
+        let votedPairs = new Set();
 
-        // Cargar datos iniciales
+        // Generar ID único para el usuario
+        function generateUserIP() {
+            if (!userIP) {
+                userIP = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('userIP', userIP);
+            }
+            return userIP;
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            userIP = localStorage.getItem('userIP') || generateUserIP();
+            loadData();
+            setupRealtimeSubscriptions();
+            loadVotedPairs();
+        });
+
+        // Configurar suscripciones en tiempo real
+        function setupRealtimeSubscriptions() {
+            supabase
+                .channel('voting_persons')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
+                    loadData();
+                })
+                .subscribe();
+
+            supabase
+                .channel('voting_votes')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
+                    // Opcional: recargar si quieres mostrar contadores en tiempo real
+                })
+                .subscribe();
+        }
+
+        // Cargar datos
         async function loadData() {
-            const votingArea = document.getElementById('votingArea');
-            votingArea.innerHTML = '<div class="loading">⏳ Cargando competencias...</div>';
-
             try {
                 const { data, error } = await supabase
                     .from('persons')
                     .select('*')
-                    .order('name');
+                    .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
-                persons = data || [];
+                // Filtrar solo personas con ambas imágenes
+                persons = (data || []).filter(p => p.image1_url && p.image2_url);
 
                 if (persons.length === 0) {
-                    votingArea.innerHTML = '<div class="no-data">📭 No hay competencias disponibles aún.<br>El administrador debe subir imágenes primero.</div>';
+                    document.getElementById('votingContent').innerHTML = `
+                        <div class="status-message warning">
+                            No hay imágenes disponibles para votar.<br>
+                            El administrador debe subir imágenes primero.
+                        </div>
+                    `;
                     return;
                 }
 
-                renderVoting();
+                setupVoting();
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                votingArea.innerHTML = '<div class="no-data">❌ Error al cargar los datos. Por favor recarga la página.</div>';
+                showMessage('Error conectando con la base de datos.', 'error');
             }
         }
 
-        // Renderizar las tarjetas de votación
-        function renderVoting() {
-            const votingArea = document.getElementById('votingArea');
-            votingArea.innerHTML = '';
-
-            persons.forEach(person => {
-                if (!person.image1_url || !person.image2_url) return;
-
-                const card = document.createElement('div');
-                card.className = 'person-card';
-                
-                const votes1 = getVotesForImage(person.id, 1);
-                const votes2 = getVotesForImage(person.id, 2);
-
-                card.innerHTML = `
-                    <div class="person-name">${person.name}</div>
-                    <div class="images-container">
-                        <div class="image-option" onclick="vote('${person.id}', 1)">
-                            <img src="${person.image1_url}" alt="${person.name} - Opción 1">
-                            <div class="vote-overlay">👍 ¡Votar por esta!</div>
-                        </div>
-                        <div class="image-option" onclick="vote('${person.id}', 2)">
-                            <img src="${person.image2_url}" alt="${person.name} - Opción 2">
-                            <div class="vote-overlay">👍 ¡Votar por esta!</div>
-                        </div>
-                    </div>
-                    <div class="vote-count">
-                        <div>Imagen 1: <strong>${votes1}</strong> votos</div>
-                        <div>Imagen 2: <strong>${votes2}</strong> votos</div>
-                    </div>
-                `;
-
-                votingArea.appendChild(card);
-            });
+        // Cargar pares ya votados
+        function loadVotedPairs() {
+            const stored = localStorage.getItem('votedPairs_' + userIP);
+            if (stored) {
+                votedPairs = new Set(JSON.parse(stored));
+            }
         }
 
-        // Obtener votos para una imagen específica
-        function getVotesForImage(personId, imageNumber) {
-            // Esta función se actualizará con datos reales después de implementar el sistema de votos
-            return 0;
+        // Guardar par votado
+        function saveVotedPair(personId) {
+            votedPairs.add(personId);
+            localStorage.setItem('votedPairs_' + userIP, JSON.stringify(Array.from(votedPairs)));
+        }
+
+        // Configurar votación
+        function setupVoting() {
+            if (persons.length === 0) {
+                document.getElementById('votingContent').innerHTML = `
+                    <div class="status-message warning">
+                        No hay imágenes disponibles para votar.<br>
+                        Espera a que el administrador cargue imágenes.
+                    </div>
+                `;
+                return;
+            }
+
+            currentPairIndex = 0;
+            displayVotingPair();
+            updatePairCounter();
+        }
+
+        // Mostrar par actual para votación
+        function displayVotingPair() {
+            if (currentPairIndex >= persons.length) {
+                document.getElementById('votingContent').innerHTML = `
+                    <div class="status-message success">
+                        ¡Has revisado todos los pares de imágenes!<br>
+                        Gracias por participar en la votación.
+                    </div>
+                `;
+                return;
+            }
+
+            const person = persons[currentPairIndex];
+            const hasVoted = votedPairs.has(person.id);
+
+            document.getElementById('votingContent').innerHTML = `
+                <div class="voting-pair">
+                    <h3>¿Cuál imagen prefieres?</h3>
+                    <p>Competencia: <strong>${person.name}</strong></p>
+                    ${hasVoted ? '<div class="status-message success">✅ Ya has votado en esta competencia</div>' : ''}
+                    <div class="images-comparison">
+                        <div class="vote-option">
+                            <img src="${person.image1_url}" alt="Imagen 1">
+                            <h4>Imagen 1</h4>
+                            <button class="vote-btn" onclick="vote('${person.id}', 1)" ${hasVoted ? 'disabled' : ''}>
+                                ${hasVoted ? '✅ Ya votaste' : '👍 Votar por Imagen 1'}
+                            </button>
+                        </div>
+                        <div class="vote-option">
+                            <img src="${person.image2_url}" alt="Imagen 2">
+                            <h4>Imagen 2</h4>
+                            <button class="vote-btn" onclick="vote('${person.id}', 2)" ${hasVoted ? 'disabled' : ''}>
+                                ${hasVoted ? '✅ Ya votaste' : '👍 Votar por Imagen 2'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         // Votar por una imagen
         async function vote(personId, imageNumber) {
+            if (votedPairs.has(personId)) {
+                showMessage('Ya has votado en esta competencia.', 'warning');
+                return;
+            }
+
             try {
-                // Registrar el voto
                 const { error } = await supabase
                     .from('votes')
                     .insert([
@@ -289,45 +472,62 @@
 
                 if (error) throw error;
 
-                showToast('✅ ¡Voto registrado exitosamente!');
+                saveVotedPair(personId);
+                displayVotingPair();
                 
-                // Recargar datos para actualizar contadores
-                setTimeout(() => loadData(), 500);
+                showMessage(`¡Voto registrado por Imagen ${imageNumber}!`, 'success');
+                
             } catch (error) {
-                console.error('Error al votar:', error);
-                showToast('❌ Error al registrar el voto. Intenta de nuevo.', 'error');
+                console.error('Error votando:', error);
+                showMessage('Error registrando voto. Intenta nuevamente.', 'error');
             }
         }
 
-        // Mostrar notificación
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = type === 'error' ? '#f44336' : '#4CAF50';
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+        // Navegación entre pares
+        function previousPair() {
+            if (currentPairIndex > 0) {
+                currentPairIndex--;
+                displayVotingPair();
+                updatePairCounter();
+            }
         }
 
-        // Suscribirse a cambios en tiempo real
-        supabase
-            .channel('public:persons')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
-                loadData();
-            })
-            .subscribe();
+        function nextPair() {
+            if (currentPairIndex < persons.length - 1) {
+                currentPairIndex++;
+                displayVotingPair();
+                updatePairCounter();
+            }
+        }
 
-        supabase
-            .channel('public:votes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
-                loadData();
-            })
-            .subscribe();
+        // Actualizar contador de pares
+        function updatePairCounter() {
+            const counter = document.getElementById('pairCounter');
+            counter.textContent = `${currentPairIndex + 1} de ${persons.length}`;
+            
+            document.getElementById('prevBtn').disabled = currentPairIndex === 0;
+            document.getElementById('nextBtn').disabled = currentPairIndex === persons.length - 1;
+        }
 
-        // Cargar datos al iniciar
-        loadData();
+        // Mostrar mensajes de estado
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status-message ${type}`;
+            messageDiv.innerHTML = message;
+            
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.left = '50%';
+            messageDiv.style.transform = 'translateX(-50%)';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.maxWidth = '90vw';
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 4000);
+        }
     </script>
 </body>
 </html>
