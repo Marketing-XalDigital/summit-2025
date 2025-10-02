@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗳️ Votación de Imágenes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .voting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .person-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .person-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .person-name {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .images-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .image-option {
+            position: relative;
+            cursor: pointer;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .image-option:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .image-option img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .vote-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .image-option:hover .vote-overlay {
+            opacity: 1;
+        }
+
+        .vote-count {
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .vote-count strong {
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            padding: 50px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+        }
+
+        .admin-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .admin-link a {
+            display: inline-block;
+            padding: 15px 30px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .admin-link a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗳️ ¡Vota por tu imagen favorita!</h1>
+        <div id="votingArea" class="voting-grid"></div>
+        <div class="admin-link">
+            <a href="admin.html">👑 Ir al Panel de Administración</a>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://dfxzwodoshldrucupqqa.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmeHp3b2Rvc2hsZHJ1Y3VwcXFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk0MjYwNzUsImV4cCI6MjA3NTAwMjA3NX0.wMgKkTX50pwPCB6N7iNQYsadF4pQJLREb7xGzwYBqkI';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let persons = [];
+
+        // Cargar datos iniciales
+        async function loadData() {
+            const votingArea = document.getElementById('votingArea');
+            votingArea.innerHTML = '<div class="loading">⏳ Cargando competencias...</div>';
+
+            try {
+                const { data, error } = await supabase
+                    .from('persons')
+                    .select('*')
+                    .order('name');
+
+                if (error) throw error;
+
+                persons = data || [];
+
+                if (persons.length === 0) {
+                    votingArea.innerHTML = '<div class="no-data">📭 No hay competencias disponibles aún.<br>El administrador debe subir imágenes primero.</div>';
+                    return;
+                }
+
+                renderVoting();
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                votingArea.innerHTML = '<div class="no-data">❌ Error al cargar los datos. Por favor recarga la página.</div>';
+            }
+        }
+
+        // Renderizar las tarjetas de votación
+        function renderVoting() {
+            const votingArea = document.getElementById('votingArea');
+            votingArea.innerHTML = '';
+
+            persons.forEach(person => {
+                if (!person.image1_url || !person.image2_url) return;
+
+                const card = document.createElement('div');
+                card.className = 'person-card';
+                
+                const votes1 = getVotesForImage(person.id, 1);
+                const votes2 = getVotesForImage(person.id, 2);
+
+                card.innerHTML = `
+                    <div class="person-name">${person.name}</div>
+                    <div class="images-container">
+                        <div class="image-option" onclick="vote('${person.id}', 1)">
+                            <img src="${person.image1_url}" alt="${person.name} - Opción 1">
+                            <div class="vote-overlay">👍 ¡Votar por esta!</div>
+                        </div>
+                        <div class="image-option" onclick="vote('${person.id}', 2)">
+                            <img src="${person.image2_url}" alt="${person.name} - Opción 2">
+                            <div class="vote-overlay">👍 ¡Votar por esta!</div>
+                        </div>
+                    </div>
+                    <div class="vote-count">
+                        <div>Imagen 1: <strong>${votes1}</strong> votos</div>
+                        <div>Imagen 2: <strong>${votes2}</strong> votos</div>
+                    </div>
+                `;
+
+                votingArea.appendChild(card);
+            });
+        }
+
+        // Obtener votos para una imagen específica
+        function getVotesForImage(personId, imageNumber) {
+            // Esta función se actualizará con datos reales después de implementar el sistema de votos
+            return 0;
+        }
+
+        // Votar por una imagen
+        async function vote(personId, imageNumber) {
+            try {
+                // Registrar el voto
+                const { error } = await supabase
+                    .from('votes')
+                    .insert([
+                        { person_id: personId, image_number: imageNumber }
+                    ]);
+
+                if (error) throw error;
+
+                showToast('✅ ¡Voto registrado exitosamente!');
+                
+                // Recargar datos para actualizar contadores
+                setTimeout(() => loadData(), 500);
+            } catch (error) {
+                console.error('Error al votar:', error);
+                showToast('❌ Error al registrar el voto. Intenta de nuevo.', 'error');
+            }
+        }
+
+        // Mostrar notificación
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.background = type === 'error' ? '#f44336' : '#4CAF50';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Suscribirse a cambios en tiempo real
+        supabase
+            .channel('public:persons')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
+                loadData();
+            })
+            .subscribe();
+
+        supabase
+            .channel('public:votes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
+                loadData();
+            })
+            .subscribe();
+
+        // Cargar datos al iniciar
+        loadData();
+    </script>
+</body>
+</html>
