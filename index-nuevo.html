@@ -182,6 +182,29 @@
             transform: none;
         }
 
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .admin-link a {
+            display: inline-block;
+            padding: 12px 25px;
+            background: rgba(255,255,255,0.9);
+            color: #dc770e;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            border: 2px solid #dc770e;
+            transition: all 0.3s ease;
+        }
+
+        .admin-link a:hover {
+            background: #dc770e;
+            color: white;
+            transform: translateY(-2px);
+        }
+
         #pairCounter {
             font-weight: 600;
             font-size: clamp(18px, 5vw, 22px);
@@ -306,6 +329,10 @@
                 <div id="pairCounter">Cargando...</div>
                 <button class="nav-control" id="nextBtn" onclick="nextPair()">Siguiente ➡️</button>
             </div>
+
+            <div class="admin-link">
+                <a href="admin.html">👑 Panel de Administración</a>
+            </div>
         </div>
     </div>
 
@@ -332,7 +359,9 @@
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Iniciando aplicación de votación...');
             userIP = localStorage.getItem('userIP') || generateUserIP();
+            console.log('User IP:', userIP);
             loadData();
             setupRealtimeSubscriptions();
             loadVotedPairs();
@@ -343,14 +372,15 @@
             supabase
                 .channel('voting_persons')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
+                    console.log('Cambio detectado en persons');
                     loadData();
                 })
                 .subscribe();
 
             supabase
                 .channel('voting_votes')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
-                    // Opcional: recargar si quieres mostrar contadores en tiempo real
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
+                    console.log('Nuevo voto detectado:', payload);
                 })
                 .subscribe();
         }
@@ -358,6 +388,7 @@
         // Cargar datos
         async function loadData() {
             try {
+                console.log('Cargando personas desde Supabase...');
                 const { data, error } = await supabase
                     .from('persons')
                     .select('*')
@@ -365,8 +396,11 @@
 
                 if (error) throw error;
 
+                console.log('Datos recibidos:', data);
+
                 // Filtrar solo personas con ambas imágenes
                 persons = (data || []).filter(p => p.image1_url && p.image2_url);
+                console.log('Personas con ambas imágenes:', persons.length);
 
                 if (persons.length === 0) {
                     document.getElementById('votingContent').innerHTML = `
@@ -381,7 +415,7 @@
                 setupVoting();
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                showMessage('Error conectando con la base de datos.', 'error');
+                showMessage('Error conectando con la base de datos: ' + error.message, 'error');
             }
         }
 
@@ -390,6 +424,7 @@
             const stored = localStorage.getItem('votedPairs_' + userIP);
             if (stored) {
                 votedPairs = new Set(JSON.parse(stored));
+                console.log('Pares votados cargados:', Array.from(votedPairs));
             }
         }
 
@@ -397,6 +432,7 @@
         function saveVotedPair(personId) {
             votedPairs.add(personId);
             localStorage.setItem('votedPairs_' + userIP, JSON.stringify(Array.from(votedPairs)));
+            console.log('Par guardado como votado:', personId);
         }
 
         // Configurar votación
@@ -431,6 +467,8 @@
             const person = persons[currentPairIndex];
             const hasVoted = votedPairs.has(person.id);
 
+            console.log('Mostrando competencia:', person.name, 'Ya votó:', hasVoted);
+
             document.getElementById('votingContent').innerHTML = `
                 <div class="voting-pair">
                     <h3>¿Cuál imagen prefieres?</h3>
@@ -458,19 +496,31 @@
 
         // Votar por una imagen
         async function vote(personId, imageNumber) {
+            console.log('Intentando votar:', { personId, imageNumber });
+
             if (votedPairs.has(personId)) {
                 showMessage('Ya has votado en esta competencia.', 'warning');
                 return;
             }
 
             try {
-                const { error } = await supabase
+                console.log('Insertando voto en Supabase...');
+                const { data, error } = await supabase
                     .from('votes')
                     .insert([
-                        { person_id: personId, image_number: imageNumber }
-                    ]);
+                        { 
+                            person_id: personId, 
+                            image_number: imageNumber
+                        }
+                    ])
+                    .select();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error de Supabase:', error);
+                    throw error;
+                }
+
+                console.log('Voto insertado exitosamente:', data);
 
                 saveVotedPair(personId);
                 displayVotingPair();
@@ -478,8 +528,8 @@
                 showMessage(`¡Voto registrado por Imagen ${imageNumber}!`, 'success');
                 
             } catch (error) {
-                console.error('Error votando:', error);
-                showMessage('Error registrando voto. Intenta nuevamente.', 'error');
+                console.error('Error completo al votar:', error);
+                showMessage('Error registrando voto: ' + error.message, 'error');
             }
         }
 
