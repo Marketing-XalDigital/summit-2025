@@ -89,6 +89,32 @@
             display: block;
         }
 
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Dosis', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #dc770e;
+        }
+
         .upload-area {
             border: 3px dashed #ddd;
             border-radius: 15px;
@@ -131,6 +157,11 @@
             transform: translateY(-2px);
         }
 
+        .upload-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .image-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -148,6 +179,24 @@
 
         .image-pair:hover {
             transform: translateY(-5px);
+        }
+
+        .person-name-display {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #dc770e;
+            margin: 10px 0;
+            padding: 10px;
+            background: #fffbf0;
+            border-radius: 8px;
+        }
+
+        .person-details {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0;
         }
 
         .results-grid {
@@ -316,13 +365,32 @@
                     Sube UNA imagen que termine en -1 o -2 (ej: maria-1.jpg o maria-2.jpg)<br>
                     <strong>La app automáticamente emparejará las imágenes cuando ambas estén subidas</strong>
                 </p>
+
+                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; margin-bottom: 20px;">
+                    <h3 style="text-align: center; margin-bottom: 20px; color: #dc770e;">Datos del Participante</h3>
+                    
+                    <div class="form-group">
+                        <label for="personName">Nombre completo *</label>
+                        <input type="text" id="personName" placeholder="Ej: María García" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="personEmail">Correo electrónico *</label>
+                        <input type="email" id="personEmail" placeholder="ejemplo@correo.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="personPhone">Teléfono *</label>
+                        <input type="tel" id="personPhone" placeholder="5512345678" required>
+                    </div>
+                </div>
                 
                 <div class="upload-area" id="uploadArea">
                     <div style="font-size: 3em; margin-bottom: 15px;">📸</div>
                     <h3>Arrastra una imagen aquí o haz clic para seleccionar</h3>
                     <p style="margin-top: 10px; color: #666;">Sube solo UNA imagen (-1 o -2)</p>
                     <input type="file" id="fileInput" class="file-input" accept="image/*">
-                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('fileInput').click()">
                         Seleccionar Imagen
                     </button>
                 </div>
@@ -369,7 +437,7 @@
                             <h3 style="color: #28a745; font-weight: 700; margin-bottom: 10px;">EXPORTAR DATOS A EXCEL</h3>
                             <p style="color: #666; margin-bottom: 20px;">
                                 Descarga todos los datos del concurso actual en formato Excel.<br>
-                                <strong>Incluye:</strong> nombres, fotos, votos, competencias y estadísticas completas.
+                                <strong>Incluye:</strong> nombres, correos, teléfonos, votos y estadísticas completas.
                             </p>
                         </div>
                         <button onclick="exportToExcel()" style="
@@ -398,7 +466,7 @@
                                 <strong style="color: #dc3545;">⚠️ ATENCIÓN:</strong> Esta acción eliminará permanentemente:<br>
                                 • Todas las imágenes subidas<br>
                                 • Todos los votos registrados<br>
-                                • Todos los nombres de personas<br>
+                                • Todos los datos de participantes<br>
                                 • Todas las competencias creadas
                             </p>
                             <p style="color: #dc3545; font-weight: 600; font-size: 16px;">
@@ -563,6 +631,23 @@
 
         // Procesar archivo de imagen
         async function processImageFile(file) {
+            // Validar campos obligatorios
+            const name = document.getElementById('personName').value.trim();
+            const email = document.getElementById('personEmail').value.trim();
+            const phone = document.getElementById('personPhone').value.trim();
+
+            if (!name || !email || !phone) {
+                showMessage('Por favor completa todos los campos: Nombre, Correo y Teléfono', 'error');
+                return;
+            }
+
+            // Validar email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showMessage('Por favor ingresa un correo electrónico válido', 'error');
+                return;
+            }
+
             const fileName = file.name;
             const lastDot = fileName.lastIndexOf('.');
             const nameWithoutExt = fileName.substring(0, lastDot);
@@ -572,6 +657,9 @@
                 return;
             }
 
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '⏳ Subiendo...';
             showMessage('Subiendo imagen...', 'warning');
             
             try {
@@ -611,7 +699,12 @@
                     const updateField = isImage1 ? 'image1_url' : 'image2_url';
                     const { error: updateError } = await supabase
                         .from('persons')
-                        .update({ [updateField]: imageUrl })
+                        .update({ 
+                            [updateField]: imageUrl,
+                            full_name: name,
+                            email: email,
+                            phone: phone
+                        })
                         .eq('id', existingPerson.id);
 
                     if (updateError) throw updateError;
@@ -621,6 +714,9 @@
                     // Crear nueva persona
                     const newPerson = {
                         name: baseName,
+                        full_name: name,
+                        email: email,
+                        phone: phone,
                         image1_url: isImage1 ? imageUrl : null,
                         image2_url: !isImage1 ? imageUrl : null
                     };
@@ -634,10 +730,18 @@
                     showMessage(`Imagen subida para ${baseName}. Esperando pareja...`, 'success');
                 }
 
+                // Limpiar formulario
+                document.getElementById('personName').value = '';
+                document.getElementById('personEmail').value = '';
+                document.getElementById('personPhone').value = '';
+
                 loadData();
             } catch (error) {
                 console.error('Error subiendo imagen:', error);
                 showMessage('Error subiendo imagen: ' + error.message, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Seleccionar Imagen';
             }
         }
 
@@ -658,8 +762,11 @@
                 pairDiv.className = 'image-pair';
                 
                 pairDiv.innerHTML = `
-                    <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">${person.name}</h4>
-                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${person.name}</h4>
+                    ${person.full_name ? `<div class="person-name-display">👤 ${person.full_name}</div>` : ''}
+                    ${person.email ? `<div class="person-details">📧 ${person.email}</div>` : ''}
+                    ${person.phone ? `<div class="person-details">📱 ${person.phone}</div>` : ''}
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
                         <div style="text-align: center;">
                             ${person.image1_url ? 
                                 `<img src="${person.image1_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">` :
@@ -748,6 +855,7 @@
                 
                 resultCard.innerHTML = `
                     <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${person.name}</h3>
+                    ${person.full_name ? `<div class="person-name-display">👤 ${person.full_name}</div>` : ''}
                     <div class="result-images">
                         <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
                             ${person.image1_url ? `<img src="${person.image1_url}" class="result-img">` : '<div class="result-img" style="background: #ddd;"></div>'}
@@ -800,17 +908,19 @@
                 const votes2 = personVotes.filter(v => v.image_number === 2).length;
                 
                 allPersonsWithVotes.push({
-                    name: `${person.name} - Imagen 1`,
+                    name: `${person.full_name || person.name} - Imagen 1`,
                     image: person.image1_url,
                     votes: votes1,
-                    pairName: person.name
+                    pairName: person.name,
+                    fullName: person.full_name
                 });
                 
                 allPersonsWithVotes.push({
-                    name: `${person.name} - Imagen 2`,
+                    name: `${person.full_name || person.name} - Imagen 2`,
                     image: person.image2_url,
                     votes: votes2,
-                    pairName: person.name
+                    pairName: person.name,
+                    fullName: person.full_name
                 });
             });
 
@@ -931,7 +1041,7 @@
                     </div>
                     <div style="text-align: center;">
                         <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPersons}</div>
-                        <div style="color: #666;">Personas</div>
+                        <div style="color: #666;">Imágenes</div>
                     </div>
                     <div style="text-align: center;">
                         <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalVotes}</div>
@@ -953,6 +1063,9 @@
                 
                 excelData.push([
                     'Competencia',
+                    'Nombre Completo',
+                    'Correo',
+                    'Teléfono',
                     'Imagen 1 Votos',
                     'Imagen 2 Votos',
                     'Total Votos',
@@ -967,6 +1080,9 @@
                     
                     excelData.push([
                         person.name,
+                        person.full_name || 'N/A',
+                        person.email || 'N/A',
+                        person.phone || 'N/A',
                         votes1,
                         votes2,
                         votes1 + votes2,
