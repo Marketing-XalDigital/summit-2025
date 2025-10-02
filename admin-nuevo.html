@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👑 Panel de Administración</title>
+    <title>Panel de Administración - Votación</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -14,386 +16,423 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            font-family: 'Dosis', sans-serif;
+            background: linear-gradient(135deg, #dc770e 0%, #fbd21d 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: #000;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
-        h1 {
+        .header {
             text-align: center;
-            color: white;
+            color: #000;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: clamp(2em, 5vw, 2.5em);
             margin-bottom: 10px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
+            font-weight: 700;
         }
 
-        .subtitle {
-            text-align: center;
-            color: rgba(255,255,255,0.9);
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
             margin-bottom: 30px;
-            font-size: 1.1em;
+            flex-wrap: wrap;
         }
 
-        .admin-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 1.5em;
-            color: #f5576c;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #f5576c;
-        }
-
-        .upload-section {
-            background: #f9f9f9;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-
-        .info-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #333;
-        }
-
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-
-        input[type="text"]:focus,
-        input[type="file"]:focus {
-            outline: none;
-            border-color: #f5576c;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: bold;
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #dc770e;
+            border-radius: 25px;
             cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
             transition: all 0.3s ease;
-            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: #dc770e;
         }
 
-        .btn-primary {
-            background: #f5576c;
+        .nav-btn:hover {
+            background: #dc770e;
             color: white;
-        }
-
-        .btn-primary:hover {
-            background: #d4455a;
             transform: translateY(-2px);
         }
 
-        .btn-success {
-            background: #4CAF50;
+        .nav-btn.active {
+            background: #dc770e;
             color: white;
         }
 
-        .btn-success:hover {
-            background: #45a049;
+        .section {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
         }
 
-        .btn-danger {
-            background: #f44336;
+        .section.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #dc770e;
+            background: #fffbf0;
+        }
+
+        .upload-area.dragover {
+            border-color: #fbd21d;
+            background: #fffef0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #dc770e;
             color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
+            transition: all 0.3s ease;
         }
 
-        .btn-danger:hover {
-            background: #da190b;
+        .upload-btn:hover {
+            background: #b8630c;
+            transform: translateY(-2px);
         }
 
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .competitors-grid {
+        .image-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             margin-top: 20px;
         }
 
-        .competitor-card {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-
-        .competitor-name {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .competitor-images {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .competitor-images img {
-            width: 100%;
-            height: 100px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .competitor-stats {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .btn-delete {
-            width: 100%;
-            padding: 8px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-
-        .btn-delete:hover {
-            background: #da190b;
-        }
-
-        .leaderboard {
-            margin-top: 30px;
-        }
-
-        .leaderboard-item {
+        .image-pair {
             background: white;
+            border-radius: 15px;
             padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .image-pair:hover {
+            transform: translateY(-5px);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-images {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .result-img-container {
+            text-align: center;
+            flex: 1;
+        }
+
+        .result-img {
+            width: 100%;
+            max-width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
             margin-bottom: 10px;
-            border-radius: 8px;
+        }
+
+        .result-stats {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+            height: 25px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #dc770e, #fbd21d);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            justify-content: center;
+            color: #000;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
         }
 
-        .rank {
-            font-size: 2em;
-            font-weight: bold;
-            color: #f5576c;
-            min-width: 50px;
-        }
-
-        .leaderboard-info {
-            flex-grow: 1;
-        }
-
-        .leaderboard-name {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        .leaderboard-votes {
-            color: #666;
-        }
-
-        .actions-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .action-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
-
-        .warning-box {
-            background: #ffebee;
-            border-left: 4px solid #f44336;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
-        }
-
-        .back-link {
+        .status-message {
             text-align: center;
-            margin-top: 30px;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-weight: 600;
+            font-family: 'Dosis', sans-serif;
         }
 
-        .back-link a {
-            display: inline-block;
-            padding: 15px 30px;
-            background: white;
-            color: #f5576c;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
-        .back-link a:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #fbd21d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .loading {
             text-align: center;
             padding: 20px;
             color: #666;
+            font-size: 18px;
         }
 
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #4CAF50;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: none;
-            z-index: 1000;
-        }
-
-        .toast.show {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
             }
-            to {
-                transform: translateX(0);
+
+            .nav-buttons {
+                gap: 8px;
+            }
+
+            .nav-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 25px;
+            }
+
+            .image-list {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .result-images {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .result-img {
+                max-width: 120px;
+                height: 120px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>👑 Panel de Administración</h1>
-        <p class="subtitle">Gestiona las imágenes y observa los resultados</p>
-
-        <!-- Sección de Subida -->
-        <div class="admin-panel">
-            <h2 class="section-title">📤 Subir Imágenes</h2>
-            
-            <div class="info-box">
-                <strong>📝 Instrucciones:</strong><br>
-                • Sube UNA imagen que termine en -1 o -2 (ej: maria-1.jpg o maria-2.jpg)<br>
-                • La app automáticamente emparejará las imágenes cuando ambas estén subidas
+        <div id="admin-panel" class="admin-panel">
+            <div class="header">
+                <h1>👑 Panel de Administración</h1>
+                <p>Gestiona las imágenes y observa los resultados</p>
             </div>
 
-            <div class="upload-section">
-                <div class="form-group">
-                    <label for="personName">Nombre de la persona:</label>
-                    <input type="text" id="personName" placeholder="Ej: Maria, Juan, Pedro...">
-                </div>
-
-                <div class="form-group">
-                    <label for="imageFile">Sube solo UNA imagen (-1 o -2):</label>
-                    <input type="file" id="imageFile" accept="image/*">
-                </div>
-
-                <button class="btn btn-primary" onclick="uploadImage()" id="uploadBtn">
-                    📤 Subir Imagen
-                </button>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showSection('upload')">📤 Cargar Imágenes</button>
+                <button class="nav-btn" onclick="showSection('results')">📊 Ver Resultados</button>
+                <button class="nav-btn" onclick="showSection('top8')">🏆 TOP 8</button>
+                <button class="nav-btn" onclick="showSection('admin')">⚙️ Administrar</button>
             </div>
 
-            <div id="competitorsList">
-                <h3>Competencias actuales:</h3>
-                <div class="competitors-grid" id="competitorsGrid"></div>
-            </div>
-        </div>
-
-        <!-- Sección de Resultados -->
-        <div class="admin-panel">
-            <h2 class="section-title">🏆 Tabla de Posiciones</h2>
-            <p style="color: #666; margin-bottom: 15px;">Las 8 personas con mayor número de votos</p>
-            <div id="leaderboard" class="leaderboard"></div>
-        </div>
-
-        <!-- Sección de Acciones -->
-        <div class="admin-panel">
-            <h2 class="section-title">⚙️ Acciones</h2>
-            <p style="color: #666; margin-bottom: 20px;">Exportar datos y gestionar el concurso</p>
-            
-            <div class="actions-section">
-                <div class="action-card">
-                    <h3>📊 Exportar a Excel</h3>
-                    <p style="color: #666; margin: 15px 0;">Descarga todos los datos del concurso actual en formato Excel.</p>
-                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Incluye: nombres, fotos, votos, competencias y estadísticas completas.</p>
-                    <button class="btn btn-success" onclick="exportToExcel()">
-                        📥 Descargar Excel
+            <!-- Upload Section -->
+            <div id="upload-section" class="section active">
+                <h2 style="text-align: center; margin-bottom: 20px; font-weight: 600;">Cargar Imagen Individual</h2>
+                <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                    Sube UNA imagen que termine en -1 o -2 (ej: maria-1.jpg o maria-2.jpg)<br>
+                    <strong>La app automáticamente emparejará las imágenes cuando ambas estén subidas</strong>
+                </p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📸</div>
+                    <h3>Arrastra una imagen aquí o haz clic para seleccionar</h3>
+                    <p style="margin-top: 10px; color: #666;">Sube solo UNA imagen (-1 o -2)</p>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                        Seleccionar Imagen
                     </button>
                 </div>
 
-                <div class="action-card">
-                    <h3>🗑️ Borrar Todo</h3>
-                    <div class="warning-box">
-                        <strong>⚠️ ATENCIÓN:</strong> Esta acción eliminará permanentemente:<br>
-                        • Todas las imágenes subidas<br>
-                        • Todos los votos registrados<br>
-                        • Todos los nombres de personas<br>
-                        • Todas las competencias creadas
+                <div id="messageContainer"></div>
+                <div id="imageList" class="image-list"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 600;">📊 Resultados de Votación</h2>
+                <div id="resultsContent" class="results-grid">
+                    <div class="loading">🔄 Cargando resultados...</div>
+                </div>
+            </div>
+
+            <!-- TOP 8 Section -->
+            <div id="top8-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
+                    🏆 TOP 8 MÁS VOTADOS
+                </h2>
+                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
+                    Las 8 personas con mayor número de votos
+                </p>
+                <div id="top8Content">
+                    <div class="loading">🔄 Cargando TOP 8...</div>
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; font-weight: 700; color: #dc770e; font-size: 2.5em;">
+                    ⚙️ ADMINISTRACIÓN DEL SISTEMA
+                </h2>
+                <p style="text-align: center; margin-bottom: 40px; color: #666; font-size: 18px;">
+                    Exportar datos y gestionar el concurso
+                </p>
+                
+                <div style="max-width: 800px; margin: 0 auto; display: grid; gap: 30px;">
+                    <!-- Exportar Excel -->
+                    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid #28a745;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 4em; margin-bottom: 15px;">📥</div>
+                            <h3 style="color: #28a745; font-weight: 700; margin-bottom: 10px;">EXPORTAR DATOS A EXCEL</h3>
+                            <p style="color: #666; margin-bottom: 20px;">
+                                Descarga todos los datos del concurso actual en formato Excel.<br>
+                                <strong>Incluye:</strong> nombres, fotos, votos, competencias y estadísticas completas.
+                            </p>
+                        </div>
+                        <button onclick="exportToExcel()" style="
+                            width: 100%;
+                            background: linear-gradient(135deg, #28a745, #34ce57);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 25px;
+                            font-size: 18px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                            📥 DESCARGAR EXCEL
+                        </button>
                     </div>
-                    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">💡 RECOMENDACIÓN: Exporta los datos a Excel antes de borrar</p>
-                    <button class="btn btn-danger" onclick="confirmDeleteAll()">
-                        🗑️ Borrar Todo
-                    </button>
+
+                    <!-- Borrar Todo -->
+                    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 3px solid #dc3545;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 4em; margin-bottom: 15px;">🗑️</div>
+                            <h3 style="color: #dc3545; font-weight: 700; margin-bottom: 10px;">BORRAR TODO EL CONCURSO</h3>
+                            <p style="color: #666; margin-bottom: 20px;">
+                                <strong style="color: #dc3545;">⚠️ ATENCIÓN:</strong> Esta acción eliminará permanentemente:<br>
+                                • Todas las imágenes subidas<br>
+                                • Todos los votos registrados<br>
+                                • Todos los nombres de personas<br>
+                                • Todas las competencias creadas
+                            </p>
+                            <p style="color: #dc3545; font-weight: 600; font-size: 16px;">
+                                💡 RECOMENDACIÓN: Exporta los datos a Excel antes de borrar
+                            </p>
+                        </div>
+                        <button onclick="confirmDeleteAll()" style="
+                            width: 100%;
+                            background: linear-gradient(135deg, #dc3545, #e74c3c);
+                            color: white;
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 25px;
+                            font-size: 18px;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                            🗑️ BORRAR TODO EL CONCURSO
+                        </button>
+                    </div>
+
+                    <!-- Estadísticas del Sistema -->
+                    <div id="systemStats" style="background: #f8f9fa; border-radius: 20px; padding: 25px; text-align: center;">
+                        <h3 style="color: #dc770e; margin-bottom: 20px; font-weight: 600;">📊 Estadísticas del Sistema</h3>
+                        <div id="statsContent">
+                            <div class="loading">🔄 Cargando estadísticas...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="back-link">
-            <a href="index.html">← Volver a la Votación</a>
         </div>
     </div>
-
-    <div id="toast" class="toast"></div>
 
     <script>
         // Configuración de Supabase
@@ -402,161 +441,146 @@
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Cargar datos
-        async function loadData() {
-            await loadCompetitors();
-            await loadLeaderboard();
+        let persons = [];
+        let allVotes = [];
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado, inicializando...');
+            setupDragAndDrop();
+            loadData();
+            setupRealtimeSubscriptions();
+        });
+
+        // Configurar suscripciones en tiempo real
+        function setupRealtimeSubscriptions() {
+            supabase
+                .channel('admin_persons')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
+                    loadData();
+                })
+                .subscribe();
+
+            supabase
+                .channel('admin_votes')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
+                    loadData();
+                })
+                .subscribe();
         }
 
-        // Cargar competidores
-        async function loadCompetitors() {
-            const grid = document.getElementById('competitorsGrid');
-            grid.innerHTML = '<div class="loading">Cargando...</div>';
-
+        // Cargar datos
+        async function loadData() {
             try {
-                const { data, error } = await supabase
+                const { data: personsData, error: personsError } = await supabase
                     .from('persons')
                     .select('*')
                     .order('name');
 
-                if (error) throw error;
+                if (personsError) throw personsError;
 
-                if (!data || data.length === 0) {
-                    grid.innerHTML = '<p style="color: #666;">No hay competencias aún. Sube la primera imagen.</p>';
-                    return;
-                }
-
-                grid.innerHTML = '';
-                data.forEach(person => {
-                    const card = document.createElement('div');
-                    card.className = 'competitor-card';
-                    
-                    const votes = person.votes || 0;
-                    
-                    card.innerHTML = `
-                        <div class="competitor-name">${person.name}</div>
-                        <div class="competitor-images">
-                            ${person.image1_url ? `<img src="${person.image1_url}" alt="Imagen 1">` : '<div style="background: #ddd; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">Sin imagen 1</div>'}
-                            ${person.image2_url ? `<img src="${person.image2_url}" alt="Imagen 2">` : '<div style="background: #ddd; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">Sin imagen 2</div>'}
-                        </div>
-                        <div class="competitor-stats">
-                            Total de votos: <strong>${votes}</strong>
-                        </div>
-                        <button class="btn-delete" onclick="deletePerson('${person.id}', '${person.name}')">
-                            🗑️ Eliminar
-                        </button>
-                    `;
-                    
-                    grid.appendChild(card);
-                });
-            } catch (error) {
-                console.error('Error cargando competidores:', error);
-                grid.innerHTML = '<p style="color: red;">Error al cargar los datos.</p>';
-            }
-        }
-
-        // Cargar tabla de posiciones
-        async function loadLeaderboard() {
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = '<div class="loading">Cargando tabla de posiciones...</div>';
-
-            try {
-                // Obtener todos los votos
-                const { data: votes, error: votesError } = await supabase
+                const { data: votesData, error: votesError } = await supabase
                     .from('votes')
-                    .select('person_id, image_number');
+                    .select('*');
 
                 if (votesError) throw votesError;
 
-                // Obtener todas las personas
-                const { data: persons, error: personsError } = await supabase
-                    .from('persons')
-                    .select('*');
+                persons = personsData || [];
+                allVotes = votesData || [];
 
-                if (personsError) throw personsError;
-
-                // Contar votos por persona
-                const voteCounts = {};
-                votes.forEach(vote => {
-                    voteCounts[vote.person_id] = (voteCounts[vote.person_id] || 0) + 1;
-                });
-
-                // Combinar datos y ordenar
-                const leaderboardData = persons
-                    .map(person => ({
-                        ...person,
-                        totalVotes: voteCounts[person.id] || 0
-                    }))
-                    .sort((a, b) => b.totalVotes - a.totalVotes)
-                    .slice(0, 8);
-
-                if (leaderboardData.length === 0) {
-                    leaderboard.innerHTML = '<p style="color: #666; text-align: center;">No hay votos registrados aún.</p>';
-                    return;
-                }
-
-                leaderboard.innerHTML = '';
-                leaderboardData.forEach((person, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item';
-                    
-                    const medals = ['🥇', '🥈', '🥉'];
-                    const rank = index < 3 ? medals[index] : `#${index + 1}`;
-                    
-                    item.innerHTML = `
-                        <div class="rank">${rank}</div>
-                        <div class="leaderboard-info">
-                            <div class="leaderboard-name">${person.name}</div>
-                            <div class="leaderboard-votes">${person.totalVotes} votos totales</div>
-                        </div>
-                    `;
-                    
-                    leaderboard.appendChild(item);
-                });
+                displayImagePairs();
+                displayResults();
+                displayTop8();
+                displaySystemStats();
             } catch (error) {
-                console.error('Error cargando leaderboard:', error);
-                leaderboard.innerHTML = '<p style="color: red;">Error al cargar la tabla de posiciones.</p>';
+                console.error('Error cargando datos:', error);
+                showMessage('Error cargando datos: ' + error.message, 'error');
             }
         }
 
-        // Subir imagen
-        async function uploadImage() {
-            const nameInput = document.getElementById('personName');
-            const fileInput = document.getElementById('imageFile');
-            const uploadBtn = document.getElementById('uploadBtn');
+        // Mostrar mensajes
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `status-message ${type}`;
+            messageDiv.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => messageDiv.remove(), 300);
+                }, 5000);
+            }
+        }
 
-            const name = nameInput.value.trim();
-            const file = fileInput.files[0];
+        // Configurar drag and drop
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
 
-            if (!name) {
-                showToast('❌ Por favor ingresa un nombre', 'error');
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = Array.from(e.dataTransfer.files);
+                handleFiles(files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                handleFiles(files);
+                e.target.value = '';
+            });
+        }
+
+        // Manejar archivos
+        function handleFiles(files) {
+            if (files.length > 1) {
+                showMessage('Por favor, sube solo UNA imagen a la vez.', 'warning');
                 return;
             }
 
-            if (!file) {
-                showToast('❌ Por favor selecciona una imagen', 'error');
+            const imageFile = files[0];
+            
+            if (!imageFile || !imageFile.type.startsWith('image/')) {
+                showMessage('Por favor, selecciona un archivo de imagen válido.', 'warning');
                 return;
             }
 
-            // Validar que el nombre termine en -1 o -2
-            const fileName = file.name.toLowerCase();
-            const imageNumber = fileName.includes('-1.') ? 1 : fileName.includes('-2.') ? 2 : null;
+            processImageFile(imageFile);
+        }
 
-            if (!imageNumber) {
-                showToast('❌ El nombre de la imagen debe terminar en -1 o -2 (ej: maria-1.jpg)', 'error');
+        // Procesar archivo de imagen
+        async function processImageFile(file) {
+            const fileName = file.name;
+            const lastDot = fileName.lastIndexOf('.');
+            const nameWithoutExt = fileName.substring(0, lastDot);
+            
+            if (!nameWithoutExt.endsWith('-1') && !nameWithoutExt.endsWith('-2')) {
+                showMessage('El nombre del archivo debe terminar en -1 o -2 (ej: maria-1.jpg)', 'error');
                 return;
             }
 
-            uploadBtn.disabled = true;
-            uploadBtn.textContent = '⏳ Subiendo...';
-
+            showMessage('Subiendo imagen...', 'warning');
+            
             try {
-                // Crear nombre único para el archivo
                 const timestamp = Date.now();
                 const fileExt = file.name.split('.').pop();
-                const filePath = `${name.toLowerCase()}-${imageNumber}-${timestamp}.${fileExt}`;
+                const uniqueFileName = `${timestamp}_${fileName}`;
+                const filePath = uniqueFileName;
 
-                // Subir imagen a Storage
+                // Subir a Supabase Storage
                 const { data: uploadData, error: uploadError } = await supabase.storage
                     .from('images')
                     .upload(filePath, file);
@@ -570,30 +594,35 @@
 
                 const imageUrl = urlData.publicUrl;
 
+                const isImage1 = nameWithoutExt.endsWith('-1');
+                const baseName = nameWithoutExt.slice(0, -2);
+
                 // Buscar si ya existe la persona
                 const { data: existingPerson, error: searchError } = await supabase
                     .from('persons')
                     .select('*')
-                    .eq('name', name)
+                    .eq('name', baseName)
                     .single();
 
                 if (searchError && searchError.code !== 'PGRST116') throw searchError;
 
                 if (existingPerson) {
                     // Actualizar persona existente
-                    const updateField = imageNumber === 1 ? 'image1_url' : 'image2_url';
+                    const updateField = isImage1 ? 'image1_url' : 'image2_url';
                     const { error: updateError } = await supabase
                         .from('persons')
                         .update({ [updateField]: imageUrl })
                         .eq('id', existingPerson.id);
 
                     if (updateError) throw updateError;
+
+                    showMessage(`Imagen actualizada para ${baseName}`, 'success');
                 } else {
                     // Crear nueva persona
                     const newPerson = {
-                        name: name,
-                        image1_url: imageNumber === 1 ? imageUrl : null,
-                        image2_url: imageNumber === 2 ? imageUrl : null
+                        name: baseName,
+                        image1_url: isImage1 ? imageUrl : null,
+                        image2_url: !isImage1 ? imageUrl : null
                     };
 
                     const { error: insertError } = await supabase
@@ -601,24 +630,64 @@
                         .insert([newPerson]);
 
                     if (insertError) throw insertError;
+
+                    showMessage(`Imagen subida para ${baseName}. Esperando pareja...`, 'success');
                 }
 
-                showToast('✅ Imagen subida exitosamente');
-                nameInput.value = '';
-                fileInput.value = '';
                 loadData();
             } catch (error) {
                 console.error('Error subiendo imagen:', error);
-                showToast('❌ Error al subir la imagen: ' + error.message, 'error');
-            } finally {
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = '📤 Subir Imagen';
+                showMessage('Error subiendo imagen: ' + error.message, 'error');
             }
+        }
+
+        // Mostrar pares de imágenes
+        function displayImagePairs() {
+            const imageList = document.getElementById('imageList');
+            if (!imageList) return;
+            
+            imageList.innerHTML = '';
+
+            if (persons.length === 0) {
+                imageList.innerHTML = '<p style="text-align: center; color: #666;">No hay competencias aún.</p>';
+                return;
+            }
+
+            persons.forEach(person => {
+                const pairDiv = document.createElement('div');
+                pairDiv.className = 'image-pair';
+                
+                pairDiv.innerHTML = `
+                    <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">${person.name}</h4>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <div style="text-align: center;">
+                            ${person.image1_url ? 
+                                `<img src="${person.image1_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">` :
+                                `<div style="width: 120px; height: 120px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Sin imagen 1</div>`
+                            }
+                        </div>
+                        <div style="display: flex; align-items: center; font-size: 20px; font-weight: bold; color: #dc770e;">VS</div>
+                        <div style="text-align: center;">
+                            ${person.image2_url ? 
+                                `<img src="${person.image2_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">` :
+                                `<div style="width: 120px; height: 120px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Sin imagen 2</div>`
+                            }
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button onclick="deletePerson('${person.id}', '${person.name}')" style="width: 100%; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
+                            🗑️ Eliminar Competencia
+                        </button>
+                    </div>
+                `;
+                
+                imageList.appendChild(pairDiv);
+            });
         }
 
         // Eliminar persona
         async function deletePerson(id, name) {
-            if (!confirm(`¿Estás seguro de eliminar a ${name} y todos sus votos?`)) {
+            if (!confirm(`¿Estás seguro de eliminar la competencia de ${name}?`)) {
                 return;
             }
 
@@ -630,138 +699,348 @@
 
                 if (error) throw error;
 
-                showToast('✅ Persona eliminada exitosamente');
+                showMessage('Competencia eliminada', 'success');
                 loadData();
             } catch (error) {
-                console.error('Error eliminando persona:', error);
-                showToast('❌ Error al eliminar', 'error');
+                console.error('Error eliminando:', error);
+                showMessage('Error eliminando: ' + error.message, 'error');
             }
         }
 
-        // Confirmar borrado total
-        function confirmDeleteAll() {
-            const confirmation = prompt('⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER\n\nEscribe "BORRAR TODO" para confirmar:');
+        // Cambiar sección
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             
-            if (confirmation === 'BORRAR TODO') {
-                deleteAll();
-            } else if (confirmation !== null) {
-                showToast('❌ Cancelado. Texto incorrecto.', 'error');
+            document.getElementById(section + '-section').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (section === 'results') {
+                displayResults();
+            } else if (section === 'top8') {
+                displayTop8();
+            } else if (section === 'admin') {
+                displaySystemStats();
             }
         }
 
-        // Borrar todo
-        async function deleteAll() {
-            try {
-                // Eliminar todas las personas (los votos se eliminan automáticamente por CASCADE)
-                const { error } = await supabase
-                    .from('persons')
-                    .delete()
-                    .neq('id', '00000000-0000-0000-0000-000000000000'); // Eliminar todos
-
-                if (error) throw error;
-
-                // Eliminar todas las imágenes del storage
-                const { data: files, error: listError } = await supabase.storage
-                    .from('images')
-                    .list();
-
-                if (listError) throw listError;
-
-                if (files && files.length > 0) {
-                    const filePaths = files.map(file => file.name);
-                    const { error: deleteError } = await supabase.storage
-                        .from('images')
-                        .remove(filePaths);
-
-                    if (deleteError) throw deleteError;
-                }
-
-                showToast('✅ Todos los datos han sido eliminados');
-                loadData();
-            } catch (error) {
-                console.error('Error borrando todo:', error);
-                showToast('❌ Error al borrar los datos', 'error');
+        // Mostrar resultados
+        function displayResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (persons.length === 0) {
+                resultsContent.innerHTML = `<div class="status-message warning">No hay competencias para mostrar.</div>`;
+                return;
             }
+
+            resultsContent.innerHTML = '';
+
+            persons.forEach(person => {
+                const personVotes = allVotes.filter(v => v.person_id === person.id);
+                const votes1 = personVotes.filter(v => v.image_number === 1).length;
+                const votes2 = personVotes.filter(v => v.image_number === 2).length;
+                const totalVotes = votes1 + votes2;
+
+                const winner = votes1 > votes2 ? 1 : votes2 > votes1 ? 2 : 0;
+
+                const resultCard = document.createElement('div');
+                resultCard.className = 'result-card';
+                
+                resultCard.innerHTML = `
+                    <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${person.name}</h3>
+                    <div class="result-images">
+                        <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
+                            ${person.image1_url ? `<img src="${person.image1_url}" class="result-img">` : '<div class="result-img" style="background: #ddd;"></div>'}
+                            <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${votes1} votos</p>
+                            ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
+                        </div>
+                        <div class="result-img-container" style="${winner === 2 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
+                            ${person.image2_url ? `<img src="${person.image2_url}" class="result-img">` : '<div class="result-img" style="background: #ddd;"></div>'}
+                            <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${votes2} votos</p>
+                            ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
+                        </div>
+                    </div>
+                    <div class="result-stats">
+                        <p style="text-align: center; margin-bottom: 10px; font-weight: 600;">Total de votos: ${totalVotes}</p>
+                        ${totalVotes > 0 ? `
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(votes1 / totalVotes * 100)}%">
+                                    ${Math.round(votes1 / totalVotes * 100)}%
+                                </div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(votes2 / totalVotes * 100)}%">
+                                    ${Math.round(votes2 / totalVotes * 100)}%
+                                </div>
+                            </div>
+                        ` : '<p style="text-align: center; color: #666;">Sin votos aún</p>'}
+                    </div>
+                `;
+                
+                resultsContent.appendChild(resultCard);
+            });
+        }
+
+        // Mostrar TOP 8
+        function displayTop8() {
+            const top8Content = document.getElementById('top8Content');
+            
+            if (persons.length === 0) {
+                top8Content.innerHTML = `<div class="status-message warning">No hay datos para el TOP 8.</div>`;
+                return;
+            }
+
+            const allPersonsWithVotes = [];
+            
+            persons.forEach(person => {
+                if (!person.image1_url || !person.image2_url) return;
+                
+                const personVotes = allVotes.filter(v => v.person_id === person.id);
+                const votes1 = personVotes.filter(v => v.image_number === 1).length;
+                const votes2 = personVotes.filter(v => v.image_number === 2).length;
+                
+                allPersonsWithVotes.push({
+                    name: `${person.name} - Imagen 1`,
+                    image: person.image1_url,
+                    votes: votes1,
+                    pairName: person.name
+                });
+                
+                allPersonsWithVotes.push({
+                    name: `${person.name} - Imagen 2`,
+                    image: person.image2_url,
+                    votes: votes2,
+                    pairName: person.name
+                });
+            });
+
+            const top8 = allPersonsWithVotes.sort((a, b) => b.votes - a.votes).slice(0, 8);
+
+            const top8Grid = document.createElement('div');
+            top8Grid.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 25px;
+                max-width: 1000px;
+                margin: 0 auto;
+            `;
+
+            top8.forEach((person, index) => {
+                const positionColors = {
+                    0: '#FFD700',
+                    1: '#C0C0C0',
+                    2: '#CD7F32',
+                };
+                
+                const borderColor = positionColors[index] || '#dc770e';
+                const position = index + 1;
+                
+                const personCard = document.createElement('div');
+                personCard.style.cssText = `
+                    background: white;
+                    border-radius: 20px;
+                    padding: 20px;
+                    text-align: center;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    border: 4px solid ${borderColor};
+                    transition: transform 0.3s ease;
+                    position: relative;
+                `;
+                
+                personCard.addEventListener('mouseenter', () => {
+                    personCard.style.transform = 'translateY(-10px) scale(1.02)';
+                });
+                
+                personCard.addEventListener('mouseleave', () => {
+                    personCard.style.transform = 'translateY(0) scale(1)';
+                });
+                
+                let crownEmoji = '';
+                if (index === 0) crownEmoji = '👑';
+                else if (index === 1) crownEmoji = '🥈';
+                else if (index === 2) crownEmoji = '🥉';
+                
+                personCard.innerHTML = `
+                    <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: ${borderColor}; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        ${position}
+                    </div>
+                    
+                    ${crownEmoji ? `<div style="font-size: 2.5em; margin-bottom: 10px;">${crownEmoji}</div>` : ''}
+                    
+                    <img src="${person.image}" style="
+                        width: 120px;
+                        height: 120px;
+                        object-fit: cover;
+                        border-radius: 50%;
+                        margin-bottom: 15px;
+                        border: 3px solid ${borderColor};
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    " onerror="this.style.display='none'">
+                    
+                    <h3 style="
+                        font-weight: 700;
+                        color: #333;
+                        margin-bottom: 10px;
+                        font-size: 18px;
+                        min-height: 50px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">${person.name}</h3>
+                    
+                    <div style="
+                        background: linear-gradient(135deg, #dc770e, #fbd21d);
+                        color: white;
+                        padding: 12px;
+                        border-radius: 15px;
+                        font-weight: 700;
+                        font-size: 20px;
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                        margin-bottom: 10px;
+                    ">
+                        🗳️ ${person.votes} votos
+                    </div>
+                    
+                    <p style="
+                        color: #666;
+                        font-size: 14px;
+                        font-style: italic;
+                    ">Competencia: ${person.pairName}</p>
+                `;
+                
+                top8Grid.appendChild(personCard);
+            });
+            
+            top8Content.innerHTML = '';
+            top8Content.appendChild(top8Grid);
+        }
+
+        // Estadísticas del sistema
+        function displaySystemStats() {
+            const statsContent = document.getElementById('statsContent');
+            
+            const totalPairs = persons.length;
+            const totalPersons = persons.filter(p => p.image1_url && p.image2_url).length * 2;
+            const totalVotes = allVotes.length;
+            
+            statsContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPairs}</div>
+                        <div style="color: #666;">Competencias</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalPersons}</div>
+                        <div style="color: #666;">Personas</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 28px; font-weight: 700; color: #dc770e;">${totalVotes}</div>
+                        <div style="color: #666;">Votos Totales</div>
+                    </div>
+                </div>
+            `;
         }
 
         // Exportar a Excel
-        async function exportToExcel() {
+        function exportToExcel() {
             try {
-                // Obtener todos los datos
-                const { data: persons, error: personsError } = await supabase
-                    .from('persons')
-                    .select('*');
+                if (persons.length === 0) {
+                    showMessage('No hay datos para exportar.', 'warning');
+                    return;
+                }
 
-                if (personsError) throw personsError;
-
-                const { data: votes, error: votesError } = await supabase
-                    .from('votes')
-                    .select('*');
-
-                if (votesError) throw votesError;
-
-                // Preparar datos para Excel
-                const excelData = persons.map(person => {
-                    const personVotes = votes.filter(v => v.person_id === person.id);
+                const excelData = [];
+                
+                excelData.push([
+                    'Competencia',
+                    'Imagen 1 Votos',
+                    'Imagen 2 Votos',
+                    'Total Votos',
+                    'URL Imagen 1',
+                    'URL Imagen 2'
+                ]);
+                
+                persons.forEach(person => {
+                    const personVotes = allVotes.filter(v => v.person_id === person.id);
                     const votes1 = personVotes.filter(v => v.image_number === 1).length;
                     const votes2 = personVotes.filter(v => v.image_number === 2).length;
                     
-                    return {
-                        'Nombre': person.name,
-                        'Votos Imagen 1': votes1,
-                        'Votos Imagen 2': votes2,
-                        'Total Votos': votes1 + votes2,
-                        'URL Imagen 1': person.image1_url || '',
-                        'URL Imagen 2': person.image2_url || '',
-                        'Fecha Creación': new Date(person.created_at).toLocaleString('es-MX')
-                    };
+                    excelData.push([
+                        person.name,
+                        votes1,
+                        votes2,
+                        votes1 + votes2,
+                        person.image1_url || '',
+                        person.image2_url || ''
+                    ]);
                 });
-
-                // Crear libro de Excel
+                
                 const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(excelData);
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
                 XLSX.utils.book_append_sheet(wb, ws, 'Resultados');
-
-                // Descargar archivo
-                const fileName = `votacion_summit_${new Date().toISOString().split('T')[0]}.xlsx`;
-                XLSX.writeFile(wb, fileName);
-
-                showToast('✅ Excel descargado exitosamente');
+                
+                const now = new Date();
+                const filename = `Votacion_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                showMessage('Datos exportados exitosamente', 'success');
+                
             } catch (error) {
-                console.error('Error exportando a Excel:', error);
-                showToast('❌ Error al exportar los datos', 'error');
+                console.error('Error exportando:', error);
+                showMessage('Error exportando: ' + error.message, 'error');
             }
         }
 
-        // Mostrar notificación
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.style.background = type === 'error' ? '#f44336' : '#4CAF50';
-            toast.classList.add('show');
+        // Confirmar borrado
+        function confirmDeleteAll() {
+            const userInput = prompt('Escribe "BORRAR TODO" para confirmar:');
             
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            if (userInput === "BORRAR TODO") {
+                deleteAllData();
+            } else if (userInput !== null) {
+                showMessage('Borrado cancelado.', 'warning');
+            }
         }
 
-        // Suscribirse a cambios en tiempo real
-        supabase
-            .channel('admin_persons')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
+        // Borrar todos los datos
+        async function deleteAllData() {
+            try {
+                showMessage('Borrando todos los datos...', 'warning');
+                
+                const { error } = await supabase
+                    .from('persons')
+                    .delete()
+                    .neq('id', '00000000-0000-0000-0000-000000000000');
+
+                if (error) throw error;
+
+                // Eliminar imágenes del storage
+                const { data: files } = await supabase.storage
+                    .from('images')
+                    .list();
+
+                if (files && files.length > 0) {
+                    const filePaths = files.map(file => file.name);
+                    await supabase.storage
+                        .from('images')
+                        .remove(filePaths);
+                }
+
+                showMessage('Todos los datos han sido eliminados.', 'success');
                 loadData();
-            })
-            .subscribe();
+                
+            } catch (error) {
+                console.error('Error borrando:', error);
+                showMessage('Error borrando datos: ' + error.message, 'error');
+            }
+        }
 
-        supabase
-            .channel('admin_votes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
-                loadLeaderboard();
-            })
-            .subscribe();
-
-        // Cargar datos al iniciar
-        loadData();
+        // Exponer funciones globalmente
+        window.showSection = showSection;
+        window.deletePerson = deletePerson;
+        window.exportToExcel = exportToExcel;
+        window.confirmDeleteAll = confirmDeleteAll;
     </script>
 </body>
 </html>
