@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración - Votación</title>
+    <title>Panel de Administración AWS Summit - Votación</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -878,15 +878,16 @@
                 
                 resultCard.innerHTML = `
                     <h3 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${person.name}</h3>
-                    ${person.full_name ? `<div class="person-name-display">👤 ${person.full_name}</div>` : ''}
                     <div class="result-images">
                         <div class="result-img-container" style="${winner === 1 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
                             ${person.image1_url ? `<img src="${person.image1_url}" class="result-img">` : '<div class="result-img" style="background: #ddd;"></div>'}
+                            ${person.full_name_img1 ? `<p style="font-weight: 600; color: #333; margin-top: 5px;">${person.full_name_img1}</p>` : ''}
                             <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${votes1} votos</p>
                             ${winner === 1 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
                         </div>
                         <div class="result-img-container" style="${winner === 2 ? 'border: 3px solid #dc770e; border-radius: 10px; background: #fffbf0; padding: 10px;' : ''}">
                             ${person.image2_url ? `<img src="${person.image2_url}" class="result-img">` : '<div class="result-img" style="background: #ddd;"></div>'}
+                            ${person.full_name_img2 ? `<p style="font-weight: 600; color: #333; margin-top: 5px;">${person.full_name_img2}</p>` : ''}
                             <p style="color: #dc770e; font-weight: 600; font-size: 20px; margin-top: 5px;">${votes2} votos</p>
                             ${winner === 2 ? '<p style="color: #dc770e; font-weight: 700; margin-top: 5px;">🏆 GANADOR/A</p>' : ''}
                         </div>
