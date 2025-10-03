@@ -695,16 +695,20 @@
                 if (searchError && searchError.code !== 'PGRST116') throw searchError;
 
                 if (existingPerson) {
-                    // Actualizar persona existente
+                    // Actualizar persona existente - solo actualizar imagen sin sobrescribir datos personales
                     const updateField = isImage1 ? 'image1_url' : 'image2_url';
+                    
+                    // Preparar objeto de actualización
+                    const updateData = { [updateField]: imageUrl };
+                    
+                    // Solo actualizar datos personales si no existen previamente
+                    if (!existingPerson.full_name) updateData.full_name = name;
+                    if (!existingPerson.email) updateData.email = email;
+                    if (!existingPerson.phone) updateData.phone = phone;
+                    
                     const { error: updateError } = await supabase
                         .from('persons')
-                        .update({ 
-                            [updateField]: imageUrl,
-                            full_name: name,
-                            email: email,
-                            phone: phone
-                        })
+                        .update(updateData)
                         .eq('id', existingPerson.id);
 
                     if (updateError) throw updateError;
