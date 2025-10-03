@@ -523,19 +523,41 @@
 
         // Configurar suscripciones en tiempo real
         function setupRealtimeSubscriptions() {
+            // Suscripción a cambios en persons
             supabase
                 .channel('admin_persons')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
+                    console.log('Cambio detectado en persons, recargando datos...');
                     loadData();
                 })
                 .subscribe();
 
+            // Suscripción a cambios en votes
             supabase
                 .channel('admin_votes')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, () => {
+                    console.log('Nuevo voto detectado, recargando datos...');
                     loadData();
                 })
                 .subscribe();
+        }
+
+        // Detectar qué sección está activa y refrescarla
+        function refreshActiveSection() {
+            const activeSection = document.querySelector('.section.active');
+            if (!activeSection) return;
+
+            const sectionId = activeSection.id;
+            
+            if (sectionId === 'upload-section') {
+                displayImagePairs();
+            } else if (sectionId === 'results-section') {
+                displayResults();
+            } else if (sectionId === 'top8-section') {
+                displayTop8();
+            } else if (sectionId === 'admin-section') {
+                displaySystemStats();
+            }
         }
 
         // Cargar datos
