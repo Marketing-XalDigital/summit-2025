@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administración AWS Summit - Votación</title>
+    <title>Panel de Administración - Votación</title>
     <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -932,19 +932,19 @@
                 const votes2 = personVotes.filter(v => v.image_number === 2).length;
                 
                 allPersonsWithVotes.push({
-                    name: `${person.full_name || person.name} - Imagen 1`,
+                    name: person.full_name_img1 || `${person.name} - Imagen 1`,
+                    email: person.email_img1,
                     image: person.image1_url,
                     votes: votes1,
-                    pairName: person.name,
-                    fullName: person.full_name
+                    pairName: person.name
                 });
                 
                 allPersonsWithVotes.push({
-                    name: `${person.full_name || person.name} - Imagen 2`,
+                    name: person.full_name_img2 || `${person.name} - Imagen 2`,
+                    email: person.email_img2,
                     image: person.image2_url,
                     votes: votes2,
-                    pairName: person.name,
-                    fullName: person.full_name
+                    pairName: person.name
                 });
             });
 
@@ -953,7 +953,7 @@
             const top8Grid = document.createElement('div');
             top8Grid.style.cssText = `
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 25px;
                 max-width: 1000px;
                 margin: 0 auto;
@@ -1014,13 +1014,19 @@
                     <h3 style="
                         font-weight: 700;
                         color: #333;
-                        margin-bottom: 10px;
-                        font-size: 18px;
-                        min-height: 50px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
+                        margin-bottom: 8px;
+                        font-size: 16px;
+                        line-height: 1.3;
                     ">${person.name}</h3>
+                    
+                    ${person.email ? `
+                        <p style="
+                            color: #666;
+                            font-size: 13px;
+                            margin-bottom: 12px;
+                            word-break: break-word;
+                        ">📧 ${person.email}</p>
+                    ` : ''}
                     
                     <div style="
                         background: linear-gradient(135deg, #dc770e, #fbd21d);
@@ -1037,7 +1043,7 @@
                     
                     <p style="
                         color: #666;
-                        font-size: 14px;
+                        font-size: 13px;
                         font-style: italic;
                     ">Competencia: ${person.pairName}</p>
                 `;
