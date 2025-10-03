@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Máquina Tragamonedas - Registro de Competidores</title>
+    <title>Máquina Tragamonedas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -16,237 +16,45 @@
             font-family: 'Arial', sans-serif;
             background: url('fondo.png') center center/cover no-repeat;
             min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .screen {
-            display: none;
-            height: 100vh;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .screen.active {
             display: flex;
-        }
-
-        #login-screen {
+            justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
 
         .container {
             text-align: center;
             padding: 20px;
-            max-width: 600px;
+            max-width: 800px;
             width: 100%;
-        }
-
-        #login-screen .container {
-            margin-top: 50px;
-        }
-
-        #game-screen h1 {
-            margin-top: 50px;
         }
 
         h1 {
             color: #fff;
-            font-size: 2.5rem;
-            margin-bottom: 30px;
+            font-size: 3rem;
+            margin-bottom: 40px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* Login Form */
-        .login-form {
-            background: rgba(255,255,255,0.95);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .competitors-section {
-            background: rgba(248, 249, 250, 0.8);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 2px solid #e9ecef;
-        }
-
-        .competitors-section h2 {
-            color: #2c3e50;
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-            text-align: center;
-            background: linear-gradient(145deg, #3498db, #2980b9);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            margin: -10px -10px 15px -10px;
-        }
-
-        .competitors-section:nth-child(2) h2 {
-            background: linear-gradient(145deg, #e74c3c, #c0392b);
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #f39c12;
-        }
-
-        .help-text {
-            color: #666;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .login-button {
-            background: linear-gradient(145deg, #27ae60, #2ecc71);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .login-button:hover {
-            background: linear-gradient(145deg, #2ecc71, #27ae60);
-            transform: translateY(-2px);
-        }
-
-        /* Competitors Info */
-        .competitors-info {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .competitor-card {
-            background: rgba(255,255,255,0.9);
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            min-width: 200px;
-            text-align: center;
-        }
-
-        .competitor-card:first-child {
-            border-left: 4px solid #3498db;
-        }
-
-        .competitor-card:last-child {
-            border-left: 4px solid #e74c3c;
-        }
-
-        .competitor-card h3 {
-            color: #2c3e50;
-            font-size: 1rem;
-            margin-bottom: 8px;
-        }
-
-        .competitor-card span {
-            font-weight: bold;
-            color: #34495e;
-            font-size: 1.1rem;
-        }
-
-        /* User Info */
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255,255,255,0.9);
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            margin-top: 19px;
-            font-weight: bold;
-        }
-
-        .export-button, .clear-button, .new-competition-button {
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-left: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .new-competition-button {
-            background: #3498db;
-        }
-
-        .new-competition-button:hover {
-            background: #2980b9;
-        }
-
-        .export-button {
-            background: #27ae60;
-        }
-
-        .export-button:hover {
-            background: #2ecc71;
-        }
-
-        .clear-button {
-            background: #f39c12;
-        }
-
-        .clear-button:hover {
-            background: #e67e22;
-        }
-
-        /* Slot Machine */
         .slot-machine {
             background: linear-gradient(145deg, #2c3e50, #34495e);
             border-radius: 20px;
-            padding: 40px 30px;
+            padding: 50px 40px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             border: 3px solid #f39c12;
+            margin-bottom: 30px;
         }
 
         .reels-container {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 25px;
+            margin-bottom: 40px;
         }
 
         .reel {
-            width: 180px;
-            height: 100px;
+            width: 200px;
+            height: 120px;
             background: #fff;
             border: 4px solid #f39c12;
             border-radius: 10px;
@@ -263,12 +71,12 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 13px;
             color: #2c3e50;
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             transition: transform 0.1s ease;
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         .reel.spinning .reel-strip {
@@ -281,12 +89,18 @@
             100% { transform: translateY(0) rotateX(180deg); }
         }
 
-        .spin-button {
-            background: linear-gradient(145deg, #e74c3c, #c0392b);
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .spin-button, .new-combo-button {
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
+            padding: 18px 45px;
+            font-size: 1.3rem;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
@@ -294,6 +108,10 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .spin-button {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
         }
 
         .spin-button:hover {
@@ -307,28 +125,78 @@
             transform: none;
         }
 
-        /* Responsive */
+        .new-combo-button {
+            background: linear-gradient(145deg, #27ae60, #2ecc71);
+        }
+
+        .new-combo-button:hover {
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+            transform: translateY(-2px);
+        }
+
+        .admin-controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .admin-button {
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .export-button {
+            background: #3498db;
+        }
+
+        .export-button:hover {
+            background: #2980b9;
+        }
+
+        .clear-button {
+            background: #f39c12;
+        }
+
+        .clear-button:hover {
+            background: #e67e22;
+        }
+
+        .result-display {
+            background: rgba(255,255,255,0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .result-display h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .result-text {
+            color: #34495e;
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2rem;
             }
             
-            .login-form {
-                padding: 20px;
-                max-width: 90%;
-            }
-            
-            .competitors-section {
-                padding: 15px;
-            }
-            
-            .competitors-info {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .competitor-card {
-                min-width: 250px;
+            .slot-machine {
+                padding: 30px 20px;
             }
             
             .reels-container {
@@ -337,138 +205,60 @@
             
             .reel {
                 width: 100px;
-                height: 70px;
+                height: 80px;
             }
             
             .reel-strip {
                 font-size: 10px;
+                padding: 5px;
             }
             
-            .user-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .user-info > div {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 5px;
-            }
-            
-            .export-button, .clear-button, .new-competition-button {
-                margin: 2px;
-                font-size: 12px;
-                padding: 6px 12px;
+            .spin-button, .new-combo-button {
+                padding: 15px 30px;
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Pantalla de Registro de Competidores -->
-    <div id="login-screen" class="screen active">
-        <div class="container">
-            <h1>🎰 Registro de Competidores</h1>
-            
-            <form id="login-form" class="login-form">
-                <div class="competitors-section">
-                    <h2>👤 Competidor 1</h2>
-                    <div class="form-group">
-                        <label for="nombre1">Nombre:</label>
-                        <input type="text" id="nombre1" name="nombre1" autocomplete="off" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email1">Correo Electrónico:</label>
-                        <input type="email" id="email1" name="email1" autocomplete="off" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="telefono1">Número de Teléfono:</label>
-                        <input type="tel" id="telefono1" name="telefono1" autocomplete="off" pattern="[0-9]{10}" maxlength="10" placeholder="1234567890" required>
-                        <small class="help-text">Ingresa 10 dígitos sin espacios ni guiones</small>
-                    </div>
+    <div class="container">
+        <h1>🎰 ¡Gira y Descubre!</h1>
+        
+        <div class="slot-machine">
+            <div class="reels-container">
+                <div class="reel" id="reel1">
+                    <div class="reel-strip">PREMIO</div>
                 </div>
-
-                <div class="competitors-section">
-                    <h2>👤 Competidor 2</h2>
-                    <div class="form-group">
-                        <label for="nombre2">Nombre:</label>
-                        <input type="text" id="nombre2" name="nombre2" autocomplete="off" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email2">Correo Electrónico:</label>
-                        <input type="email" id="email2" name="email2" autocomplete="off" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="telefono2">Número de Teléfono:</label>
-                        <input type="tel" id="telefono2" name="telefono2" autocomplete="off" pattern="[0-9]{10}" maxlength="10" placeholder="1234567890" required>
-                        <small class="help-text">Ingresa 10 dígitos sin espacios ni guiones</small>
-                    </div>
+                <div class="reel" id="reel2">
+                    <div class="reel-strip">GRANDE</div>
                 </div>
-                
-                <button type="submit" class="login-button">🚀 REGISTRAR AMBOS COMPETIDORES</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Pantalla de Juego -->
-    <div id="game-screen" class="screen">
-        <div class="container">
-            <h1>🎰 ¡Gira y Gana!</h1>
-            
-            <!-- Información de los competidores registrados -->
-            <div class="competitors-info">
-                <div class="competitor-card">
-                    <h3>🏁 Competidor 1</h3>
-                    <span id="competitor1-name"></span>
-                </div>
-                <div class="competitor-card">
-                    <h3>🏁 Competidor 2</h3>
-                    <span id="competitor2-name"></span>
+                <div class="reel" id="reel3">
+                    <div class="reel-strip">HOY</div>
                 </div>
             </div>
             
-            <!-- Máquina tragamonedas -->
-            <div class="slot-machine">
-                <div class="reels-container">
-                    <div class="reel" id="reel1">
-                        <div class="reel-strip">PREMIO</div>
-                    </div>
-                    <div class="reel" id="reel2">
-                        <div class="reel-strip">GRANDE</div>
-                    </div>
-                    <div class="reel" id="reel3">
-                        <div class="reel-strip">HOY</div>
-                    </div>
-                </div>
-                
+            <div class="buttons-container">
                 <button id="spin-btn" class="spin-button">🎲 GIRAR</button>
+                <button id="new-combo-btn" class="new-combo-button">🔄 NUEVA COMBINACIÓN</button>
             </div>
-            
-            <div class="user-info">
-                <span id="user-name">Competidores registrados</span>
-                <div>
-                    <button id="export-btn" class="export-button">📊 Exportar Excel</button>
-                    <button id="clear-btn" class="clear-button">🗑️ Limpiar Datos</button>
-                    <button id="new-competition-btn" class="new-competition-button">🆕 Nueva Competencia</button>
-                </div>
-            </div>
+        </div>
+
+        <div id="result-display" class="result-display" style="display: none;">
+            <h2>🎉 Resultado:</h2>
+            <p class="result-text" id="result-text"></p>
+        </div>
+
+        <div class="admin-controls">
+            <button id="export-btn" class="admin-button export-button">📊 Exportar Excel</button>
+            <button id="clear-btn" class="admin-button clear-button">🗑️ Limpiar Datos</button>
         </div>
     </div>
 
     <script>
-        class SlotMachineApp {
+        class SlotMachine {
             constructor() {
-                this.currentCompetitors = null;
-                this.hasSpun = false;
-                this.competidoresData = [];
                 this.jugadasData = [];
-                this.adminEmails = ['camila.hernandez@xaldigital.com', 'sergio.sanchez@xaldigital.com', 'valeria.lorenzana@xaldigital.com'];
                 
-                // Textos para los rodillos
                 this.texts = [
                     ['AGUACATE', 'SOMBRERO', 'TACO', 'PARAGUAS', 'HELADO', 'BOTELLA DE TEQUILA'],
                     ['BIOLUMINISCENTE', 'ESPONJOSO', 'METÁLICO', 'ORGÁNICO', 'SUAVE', 'ELEGANTE'],
@@ -477,20 +267,16 @@
                 
                 this.initializeElements();
                 this.setupEventListeners();
-                this.setupPhoneValidation();
             }
 
             initializeElements() {
-                this.loginScreen = document.getElementById('login-screen');
-                this.gameScreen = document.getElementById('game-screen');
-                this.loginForm = document.getElementById('login-form');
-                this.userNameSpan = document.getElementById('user-name');
-                this.competitor1Name = document.getElementById('competitor1-name');
-                this.competitor2Name = document.getElementById('competitor2-name');
+                this.spinBtn = document.getElementById('spin-btn');
+                this.newComboBtn = document.getElementById('new-combo-btn');
                 this.exportBtn = document.getElementById('export-btn');
                 this.clearBtn = document.getElementById('clear-btn');
-                this.newCompetitionBtn = document.getElementById('new-competition-btn');
-                this.spinBtn = document.getElementById('spin-btn');
+                this.resultDisplay = document.getElementById('result-display');
+                this.resultText = document.getElementById('result-text');
+                
                 this.reels = [
                     document.getElementById('reel1'),
                     document.getElementById('reel2'),
@@ -499,263 +285,10 @@
             }
 
             setupEventListeners() {
-                this.loginForm.addEventListener('submit', (e) => this.handleRegistration(e));
-                this.newCompetitionBtn.addEventListener('click', () => this.handleNewCompetition());
+                this.spinBtn.addEventListener('click', () => this.handleSpin());
+                this.newComboBtn.addEventListener('click', () => this.resetMachine());
                 this.exportBtn.addEventListener('click', () => this.exportToExcel());
                 this.clearBtn.addEventListener('click', () => this.clearAllData());
-                this.spinBtn.addEventListener('click', () => this.handleSpin());
-            }
-
-            setupPhoneValidation() {
-                const phoneInputs = document.querySelectorAll('input[type="tel"]');
-                
-                phoneInputs.forEach(input => {
-                    input.addEventListener('input', function(e) {
-                        this.value = this.value.replace(/[^0-9]/g, '');
-                        if (this.value.length > 10) {
-                            this.value = this.value.slice(0, 10);
-                        }
-                    });
-                    
-                    input.addEventListener('blur', function(e) {
-                        if (this.value.length !== 10 && this.value.length > 0) {
-                            this.setCustomValidity('El número de teléfono debe tener exactamente 10 dígitos.');
-                        } else {
-                            this.setCustomValidity('');
-                        }
-                    });
-                });
-            }
-
-            validateEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
-            }
-
-            validatePhone(phone) {
-                const phoneRegex = /^[0-9]{10}$/;
-                return phoneRegex.test(phone);
-            }
-
-            handleRegistration(e) {
-                e.preventDefault();
-                
-                const competitor1 = {
-                    nombre: document.getElementById('nombre1').value.trim(),
-                    email: document.getElementById('email1').value.trim(),
-                    telefono: document.getElementById('telefono1').value.trim()
-                };
-                
-                const competitor2 = {
-                    nombre: document.getElementById('nombre2').value.trim(),
-                    email: document.getElementById('email2').value.trim(),
-                    telefono: document.getElementById('telefono2').value.trim()
-                };
-                
-                // Validaciones
-                if (!competitor1.nombre || !competitor1.email || !competitor1.telefono || 
-                    !competitor2.nombre || !competitor2.email || !competitor2.telefono) {
-                    alert('Por favor, completa todos los campos para ambos competidores');
-                    return;
-                }
-                
-                if (!this.validateEmail(competitor1.email)) {
-                    alert('Por favor, ingresa un correo válido para el Competidor 1');
-                    return;
-                }
-                
-                if (!this.validateEmail(competitor2.email)) {
-                    alert('Por favor, ingresa un correo válido para el Competidor 2');
-                    return;
-                }
-                
-                if (!this.validatePhone(competitor1.telefono)) {
-                    alert('Por favor, ingresa un número de teléfono válido de 10 dígitos para el Competidor 1');
-                    return;
-                }
-                
-                if (!this.validatePhone(competitor2.telefono)) {
-                    alert('Por favor, ingresa un número de teléfono válido de 10 dígitos para el Competidor 2');
-                    return;
-                }
-                
-                if (competitor1.email === competitor2.email) {
-                    alert('Los competidores deben tener correos electrónicos diferentes');
-                    return;
-                }
-                
-                if (competitor1.telefono === competitor2.telefono) {
-                    alert('Los competidores deben tener números de teléfono diferentes');
-                    return;
-                }
-                
-                this.currentCompetitors = {
-                    competitor1,
-                    competitor2,
-                    competenciaId: Date.now()
-                };
-                this.hasSpun = false;
-                
-                this.addCompetitorsToData(competitor1, competitor2);
-                this.showGameScreen();
-            }
-
-            addCompetitorsToData(competitor1, competitor2) {
-                const now = new Date().toLocaleString('es-ES');
-                
-                const nuevaCompetencia = {
-                    competidor1: {
-                        nombre: competitor1.nombre,
-                        email: competitor1.email,
-                        telefono: competitor1.telefono
-                    },
-                    competidor2: {
-                        nombre: competitor2.nombre,
-                        email: competitor2.email,
-                        telefono: competitor2.telefono
-                    },
-                    fechaRegistro: now,
-                    competenciaId: this.currentCompetitors.competenciaId
-                };
-                
-                this.competidoresData.push(nuevaCompetencia);
-                console.log('Competidores guardados:', nuevaCompetencia);
-            }
-
-            addGameToData(resultado1, resultado2, resultado3) {
-                const now = new Date().toLocaleString('es-ES');
-                
-                const nuevaJugada = {
-                    competidor1: {
-                        nombre: this.currentCompetitors.competitor1.nombre,
-                        email: this.currentCompetitors.competitor1.email,
-                        telefono: this.currentCompetitors.competitor1.telefono
-                    },
-                    competidor2: {
-                        nombre: this.currentCompetitors.competitor2.nombre,
-                        email: this.currentCompetitors.competitor2.email,
-                        telefono: this.currentCompetitors.competitor2.telefono
-                    },
-                    resultado1,
-                    resultado2,
-                    resultado3,
-                    fechaJugada: now,
-                    competenciaId: this.currentCompetitors.competenciaId
-                };
-                
-                this.jugadasData.push(nuevaJugada);
-                console.log('Jugada guardada:', nuevaJugada);
-            }
-
-            exportToExcel() {
-                if (typeof XLSX === 'undefined') {
-                    alert('Error: La librería de Excel no se pudo cargar. Por favor, recarga la página e intenta de nuevo.');
-                    return;
-                }
-
-                if (this.competidoresData.length === 0 && this.jugadasData.length === 0) {
-                    alert('No hay datos para exportar. Registra algunos competidores y juega primero.');
-                    return;
-                }
-                
-                try {
-                    const workbook = XLSX.utils.book_new();
-                    
-                    // Hoja Competidores
-                    const competidoresExportData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Fecha/Hora Registro', 'ID Competencia']];
-                    
-                    this.competidoresData.forEach(c => {
-                        competidoresExportData.push([
-                            c.competidor1.nombre || '', 
-                            c.competidor1.email || '', 
-                            c.competidor1.telefono || '', 
-                            c.competidor2.nombre || '', 
-                            c.competidor2.email || '', 
-                            c.competidor2.telefono || '', 
-                            c.fechaRegistro || '',
-                            c.competenciaId || ''
-                        ]);
-                    });
-                    
-                    const competidoresWS = XLSX.utils.aoa_to_sheet(competidoresExportData);
-                    XLSX.utils.book_append_sheet(workbook, competidoresWS, 'Competidores');
-                    
-                    // Hoja Jugadas
-                    const jugadasExportData = [['Competidor 1 - Nombre', 'Competidor 1 - Email', 'Competidor 1 - Teléfono', 'Competidor 2 - Nombre', 'Competidor 2 - Email', 'Competidor 2 - Teléfono', 'Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora Jugada', 'ID Competencia']];
-                    
-                    this.jugadasData.forEach(j => {
-                        jugadasExportData.push([
-                            j.competidor1.nombre || '', 
-                            j.competidor1.email || '', 
-                            j.competidor1.telefono || '', 
-                            j.competidor2.nombre || '', 
-                            j.competidor2.email || '', 
-                            j.competidor2.telefono || '', 
-                            j.resultado1 || '', 
-                            j.resultado2 || '', 
-                            j.resultado3 || '', 
-                            j.fechaJugada || '',
-                            j.competenciaId || ''
-                        ]);
-                    });
-                    
-                    const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasExportData);
-                    XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
-                    
-                    const now = new Date();
-                    const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
-                    const filename = `tragamonedas_competidores_${timestamp}.xlsx`;
-                    
-                    XLSX.writeFile(workbook, filename);
-                    alert(`Excel exportado exitosamente: ${filename}`);
-                    
-                } catch (error) {
-                    console.error('Error al exportar Excel:', error);
-                    alert('Error al exportar los datos. Por favor, intenta de nuevo.');
-                }
-            }
-            
-            clearAllData() {
-                if (confirm('¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
-                    this.competidoresData = [];
-                    this.jugadasData = [];
-                    alert('Todos los datos han sido eliminados.');
-                }
-            }
-
-            showGameScreen() {
-                this.loginScreen.classList.remove('active');
-                this.gameScreen.classList.add('active');
-                
-                this.competitor1Name.textContent = this.currentCompetitors.competitor1.nombre;
-                this.competitor2Name.textContent = this.currentCompetitors.competitor2.nombre;
-                
-                this.spinBtn.disabled = false;
-                this.spinBtn.textContent = '🎲 GIRAR';
-                
-                // Verificar si alguno de los competidores es admin
-                const isAdmin = this.adminEmails.includes(this.currentCompetitors.competitor1.email) || 
-                               this.adminEmails.includes(this.currentCompetitors.competitor2.email);
-                
-                if (isAdmin) {
-                    this.exportBtn.style.display = 'inline-block';
-                    this.clearBtn.style.display = 'inline-block';
-                } else {
-                    this.exportBtn.style.display = 'none';
-                    this.clearBtn.style.display = 'none';
-                }
-            }
-
-            showLoginScreen() {
-                this.gameScreen.classList.remove('active');
-                this.loginScreen.classList.add('active');
-                this.loginForm.reset();
-            }
-
-            handleNewCompetition() {
-                this.currentCompetitors = null;
-                this.hasSpun = false;
-                this.showLoginScreen();
             }
 
             getRandomText(reelIndex) {
@@ -764,16 +297,12 @@
             }
 
             handleSpin() {
-                if (this.hasSpun) return;
-                
-                this.hasSpun = true;
                 this.spinBtn.disabled = true;
                 this.spinBtn.textContent = '🔄 GIRANDO...';
+                this.resultDisplay.style.display = 'none';
                 
-                // Iniciar animación
                 this.reels.forEach(reel => reel.classList.add('spinning'));
                 
-                // Animar textos durante el giro
                 const intervals = this.reels.map((reel, index) => {
                     return setInterval(() => {
                         const strip = reel.querySelector('.reel-strip');
@@ -781,7 +310,6 @@
                     }, 100);
                 });
                 
-                // Detener rodillos uno por uno
                 setTimeout(() => this.stopReel(0, intervals[0]), 1000 + Math.random() * 1000);
                 setTimeout(() => this.stopReel(1, intervals[1]), 1500 + Math.random() * 1000);
                 setTimeout(() => this.stopReel(2, intervals[2]), 2000 + Math.random() * 1000);
@@ -796,7 +324,6 @@
                 const finalText = this.getRandomText(reelIndex);
                 strip.textContent = finalText;
                 
-                // Verificar si todos terminaron
                 const stillSpinning = this.reels.some(r => r.classList.contains('spinning'));
                 if (!stillSpinning) {
                     this.finishGame();
@@ -810,19 +337,91 @@
                 
                 this.addGameToData(results[0], results[1], results[2]);
                 
-                this.spinBtn.textContent = '✅ YA JUGASTE - NUEVA COMPETENCIA';
-                this.spinBtn.onclick = () => this.handleNewCompetition();
+                this.spinBtn.disabled = false;
+                this.spinBtn.textContent = '🎲 GIRAR';
                 
-                // Mostrar resultado
-                setTimeout(() => {
-                    alert(`🎉 Resultado: ${results.join(' + ')}`);
-                }, 500);
+                this.resultText.textContent = `${results[0]} + ${results[1]} + ${results[2]}`;
+                this.resultDisplay.style.display = 'block';
+            }
+
+            resetMachine() {
+                this.reels.forEach((reel, index) => {
+                    const strip = reel.querySelector('.reel-strip');
+                    strip.textContent = this.getRandomText(index);
+                });
+                
+                this.resultDisplay.style.display = 'none';
+                this.spinBtn.disabled = false;
+                this.spinBtn.textContent = '🎲 GIRAR';
+            }
+
+            addGameToData(resultado1, resultado2, resultado3) {
+                const now = new Date().toLocaleString('es-ES');
+                
+                const nuevaJugada = {
+                    resultado1,
+                    resultado2,
+                    resultado3,
+                    fechaJugada: now,
+                    jugadaId: Date.now()
+                };
+                
+                this.jugadasData.push(nuevaJugada);
+                console.log('Jugada guardada:', nuevaJugada);
+            }
+
+            exportToExcel() {
+                if (typeof XLSX === 'undefined') {
+                    alert('Error: La librería de Excel no se pudo cargar. Por favor, recarga la página.');
+                    return;
+                }
+
+                if (this.jugadasData.length === 0) {
+                    alert('No hay jugadas para exportar. Gira la máquina primero.');
+                    return;
+                }
+                
+                try {
+                    const workbook = XLSX.utils.book_new();
+                    
+                    const jugadasExportData = [['Resultado 1', 'Resultado 2', 'Resultado 3', 'Fecha/Hora', 'ID Jugada']];
+                    
+                    this.jugadasData.forEach(j => {
+                        jugadasExportData.push([
+                            j.resultado1 || '', 
+                            j.resultado2 || '', 
+                            j.resultado3 || '', 
+                            j.fechaJugada || '',
+                            j.jugadaId || ''
+                        ]);
+                    });
+                    
+                    const jugadasWS = XLSX.utils.aoa_to_sheet(jugadasExportData);
+                    XLSX.utils.book_append_sheet(workbook, jugadasWS, 'Jugadas');
+                    
+                    const now = new Date();
+                    const timestamp = now.toISOString().slice(0, 19).replace(/[:.]/g, '-');
+                    const filename = `tragamonedas_${timestamp}.xlsx`;
+                    
+                    XLSX.writeFile(workbook, filename);
+                    alert(`Excel exportado: ${filename}`);
+                    
+                } catch (error) {
+                    console.error('Error al exportar Excel:', error);
+                    alert('Error al exportar los datos.');
+                }
+            }
+            
+            clearAllData() {
+                if (confirm('¿Estás seguro de eliminar todos los datos?')) {
+                    this.jugadasData = [];
+                    alert('Todos los datos han sido eliminados.');
+                }
             }
         }
 
-        // Inicializar la aplicación
         document.addEventListener('DOMContentLoaded', () => {
-            new SlotMachineApp();
+            new SlotMachine();
         });
     </script>
 </body>
