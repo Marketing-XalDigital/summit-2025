@@ -1065,32 +1065,42 @@
 
                 const excelData = [];
                 
+                // Encabezados
                 excelData.push([
                     'Competencia',
                     'Nombre Completo',
                     'Correo',
                     'Teléfono',
-                    'Imagen 1 Votos',
-                    'Imagen 2 Votos',
-                    'Total Votos',
-                    'URL Imagen 1',
-                    'URL Imagen 2'
+                    'Número de Imagen',
+                    'Votos',
+                    'URL Imagen'
                 ]);
                 
+                // Por cada persona, crear DOS filas (una por cada imagen)
                 persons.forEach(person => {
                     const personVotes = allVotes.filter(v => v.person_id === person.id);
                     const votes1 = personVotes.filter(v => v.image_number === 1).length;
                     const votes2 = personVotes.filter(v => v.image_number === 2).length;
                     
+                    // Fila para Imagen 1
                     excelData.push([
                         person.name,
                         person.full_name || 'N/A',
                         person.email || 'N/A',
                         person.phone || 'N/A',
+                        'Imagen 1',
                         votes1,
+                        person.image1_url || ''
+                    ]);
+                    
+                    // Fila para Imagen 2
+                    excelData.push([
+                        person.name,
+                        person.full_name || 'N/A',
+                        person.email || 'N/A',
+                        person.phone || 'N/A',
+                        'Imagen 2',
                         votes2,
-                        votes1 + votes2,
-                        person.image1_url || '',
                         person.image2_url || ''
                     ]);
                 });
