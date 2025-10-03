@@ -342,20 +342,25 @@
 
         // Configurar suscripciones en tiempo real
         function setupRealtimeSubscriptions() {
+            // Suscripción a cambios en persons (nuevas imágenes, actualizaciones)
             supabase
                 .channel('voting_persons')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'persons' }, () => {
-                    console.log('Cambio detectado en persons');
+                    console.log('Cambio detectado en persons - Recargando competencias...');
                     loadData();
                 })
                 .subscribe();
 
+            // Suscripción a cambios en votes (nuevos votos)
             supabase
                 .channel('voting_votes')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'votes' }, (payload) => {
                     console.log('Nuevo voto detectado:', payload);
+                    // Nota: Los contadores se actualizan en el admin, aquí solo registramos el evento
                 })
                 .subscribe();
+                
+            console.log('Suscripciones en tiempo real configuradas');
         }
 
         // Cargar datos
@@ -385,7 +390,15 @@
                     return;
                 }
 
-                setupVoting();
+                // Si ya estábamos viendo competencias, actualizar la vista
+                if (currentPairIndex >= 0 && currentPairIndex < persons.length) {
+                    displayVotingPair();
+                    updatePairCounter();
+                } else {
+                    setupVoting();
+                }
+                
+                console.log('Datos actualizados automáticamente en index.html');
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 showMessage('Error conectando con la base de datos: ' + error.message, 'error');
