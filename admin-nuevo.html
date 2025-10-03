@@ -367,7 +367,8 @@
                 </p>
 
                 <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; margin-bottom: 20px;">
-                    <h3 style="text-align: center; margin-bottom: 20px; color: #dc770e;">Datos del Participante</h3>
+                    <h3 style="text-align: center; margin-bottom: 20px; color: #dc770e;">Datos del Participante (Imagen <span id="imageNumberLabel">?</span>)</h3>
+                    <p style="text-align: center; color: #666; margin-bottom: 20px;">Ingresa los datos de la persona en esta imagen</p>
                     
                     <div class="form-group">
                         <label for="personName">Nombre completo *</label>
@@ -695,16 +696,20 @@
                 if (searchError && searchError.code !== 'PGRST116') throw searchError;
 
                 if (existingPerson) {
-                    // Actualizar persona existente - solo actualizar imagen sin sobrescribir datos personales
-                    const updateField = isImage1 ? 'image1_url' : 'image2_url';
+                    // Actualizar persona existente
+                    const updateData = {};
                     
-                    // Preparar objeto de actualización
-                    const updateData = { [updateField]: imageUrl };
-                    
-                    // Solo actualizar datos personales si no existen previamente
-                    if (!existingPerson.full_name) updateData.full_name = name;
-                    if (!existingPerson.email) updateData.email = email;
-                    if (!existingPerson.phone) updateData.phone = phone;
+                    if (isImage1) {
+                        updateData.image1_url = imageUrl;
+                        updateData.full_name_img1 = name;
+                        updateData.email_img1 = email;
+                        updateData.phone_img1 = phone;
+                    } else {
+                        updateData.image2_url = imageUrl;
+                        updateData.full_name_img2 = name;
+                        updateData.email_img2 = email;
+                        updateData.phone_img2 = phone;
+                    }
                     
                     const { error: updateError } = await supabase
                         .from('persons')
@@ -713,17 +718,24 @@
 
                     if (updateError) throw updateError;
 
-                    showMessage(`Imagen actualizada para ${baseName}`, 'success');
+                    showMessage(`Imagen ${isImage1 ? '1' : '2'} actualizada para ${baseName}`, 'success');
                 } else {
                     // Crear nueva persona
                     const newPerson = {
                         name: baseName,
-                        full_name: name,
-                        email: email,
-                        phone: phone,
                         image1_url: isImage1 ? imageUrl : null,
                         image2_url: !isImage1 ? imageUrl : null
                     };
+                    
+                    if (isImage1) {
+                        newPerson.full_name_img1 = name;
+                        newPerson.email_img1 = email;
+                        newPerson.phone_img1 = phone;
+                    } else {
+                        newPerson.full_name_img2 = name;
+                        newPerson.email_img2 = email;
+                        newPerson.phone_img2 = phone;
+                    }
 
                     const { error: insertError } = await supabase
                         .from('persons')
@@ -731,7 +743,7 @@
 
                     if (insertError) throw insertError;
 
-                    showMessage(`Imagen subida para ${baseName}. Esperando pareja...`, 'success');
+                    showMessage(`Imagen ${isImage1 ? '1' : '2'} subida para ${baseName}. Esperando pareja...`, 'success');
                 }
 
                 // Limpiar formulario
@@ -767,24 +779,31 @@
                 
                 pairDiv.innerHTML = `
                     <h4 style="text-align: center; margin-bottom: 15px; font-weight: 600;">Competencia: ${person.name}</h4>
-                    ${person.full_name ? `<div class="person-name-display">👤 ${person.full_name}</div>` : ''}
-                    ${person.email ? `<div class="person-details">📧 ${person.email}</div>` : ''}
-                    ${person.phone ? `<div class="person-details">📱 ${person.phone}</div>` : ''}
-                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px;">
-                        <div style="text-align: center;">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <h5 style="color: #3498db; margin-bottom: 10px;">Imagen 1</h5>
                             ${person.image1_url ? 
-                                `<img src="${person.image1_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">` :
-                                `<div style="width: 120px; height: 120px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Sin imagen 1</div>`
+                                `<img src="${person.image1_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` :
+                                `<div style="width: 120px; height: 120px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">Sin imagen</div>`
                             }
+                            ${person.full_name_img1 ? `<div class="person-name-display">👤 ${person.full_name_img1}</div>` : '<p style="color: #999;">Sin datos</p>'}
+                            ${person.email_img1 ? `<div class="person-details">📧 ${person.email_img1}</div>` : ''}
+                            ${person.phone_img1 ? `<div class="person-details">📱 ${person.phone_img1}</div>` : ''}
                         </div>
-                        <div style="display: flex; align-items: center; font-size: 20px; font-weight: bold; color: #dc770e;">VS</div>
-                        <div style="text-align: center;">
+                        
+                        <div style="text-align: center; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <h5 style="color: #e74c3c; margin-bottom: 10px;">Imagen 2</h5>
                             ${person.image2_url ? 
-                                `<img src="${person.image2_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">` :
-                                `<div style="width: 120px; height: 120px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center;">Sin imagen 2</div>`
+                                `<img src="${person.image2_url}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` :
+                                `<div style="width: 120px; height: 120px; background: #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;">Sin imagen</div>`
                             }
+                            ${person.full_name_img2 ? `<div class="person-name-display">👤 ${person.full_name_img2}</div>` : '<p style="color: #999;">Sin datos</p>'}
+                            ${person.email_img2 ? `<div class="person-details">📧 ${person.email_img2}</div>` : ''}
+                            ${person.phone_img2 ? `<div class="person-details">📱 ${person.phone_img2}</div>` : ''}
                         </div>
                     </div>
+                    
                     <div style="margin-top: 15px;">
                         <button onclick="deletePerson('${person.id}', '${person.name}')" style="width: 100%; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 5px; cursor: pointer; font-family: 'Dosis', sans-serif; font-weight: 600;">
                             🗑️ Eliminar Competencia
@@ -1085,9 +1104,9 @@
                     // Fila para Imagen 1
                     excelData.push([
                         person.name,
-                        person.full_name || 'N/A',
-                        person.email || 'N/A',
-                        person.phone || 'N/A',
+                        person.full_name_img1 || 'N/A',
+                        person.email_img1 || 'N/A',
+                        person.phone_img1 || 'N/A',
                         'Imagen 1',
                         votes1,
                         person.image1_url || ''
@@ -1096,9 +1115,9 @@
                     // Fila para Imagen 2
                     excelData.push([
                         person.name,
-                        person.full_name || 'N/A',
-                        person.email || 'N/A',
-                        person.phone || 'N/A',
+                        person.full_name_img2 || 'N/A',
+                        person.email_img2 || 'N/A',
+                        person.phone_img2 || 'N/A',
                         'Imagen 2',
                         votes2,
                         person.image2_url || ''
